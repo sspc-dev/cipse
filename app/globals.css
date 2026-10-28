@@ -1,26 +1,80 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "@heroui/styles";
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-tactical: #1d4b44;
+  --color-tactical-bright: #2f7d70;
+  --color-guinda: #801c35;
+  --color-gold: #c59b27;
+  --color-gold-ceremonial: #d4af37;
+
+  --font-display: var(--font-manrope);
+  --font-body: var(--font-public-sans);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/*
+ * Institutional dark theme. These rules are intentionally unlayered so they
+ * override HeroUI's default theme tokens (which live in the `theme` layer).
+ */
+.dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #06090e;
+  --foreground: #f4f6f7;
+
+  --surface: #0b1016;
+  --surface-foreground: #f4f6f7;
+  --surface-secondary: #101720;
+  --surface-secondary-foreground: #f4f6f7;
+  --surface-tertiary: #16202b;
+  --surface-tertiary-foreground: #f4f6f7;
+
+  --overlay: #101720;
+  --overlay-foreground: #f4f6f7;
+
+  --muted: #94a3b8;
+
+  --default: #16202b;
+  --default-foreground: #f4f6f7;
+
+  --field-background: rgba(6, 9, 14, 0.55);
+  --field-foreground: #f4f6f7;
+  --field-placeholder: #64748b;
+
+  --accent: #1d4b44;
+  --accent-foreground: #ffffff;
+  --accent-hover: #245a51;
+  --accent-soft: rgba(29, 75, 68, 0.28);
+  --accent-soft-foreground: #bcece2;
+
+
+
+  --danger: #ef4444;
+  --danger-foreground: #ffffff;
+
+  --border: rgba(255, 255, 255, 0.12);
+  --separator: rgba(255, 255, 255, 0.1);
+  --field-border: rgba(255, 255, 255, 0.12);
+  --field-border-width: 1px;
+  --field-border-hover: rgba(255, 255, 255, 0.22);
+
+
+  --radius: 0.75rem;
+  --field-radius: 0.75rem;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+::selection {
+  background: rgba(197, 155, 39, 0.32);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline-color: var(--focus);
 }

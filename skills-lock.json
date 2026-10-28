@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "skills": {
+    "heroui-react": {
+      "source": "heroui-inc/heroui",
+      "sourceType": "github",
+      "skillPath": "skills/heroui-react/SKILL.md",
+      "computedHash": "c11684a8843e4c511b03a0c9c5b9cad09eb1babbf23650e1b75c45d387cadd7a"
+    },
+    "hugeicons": {
+      "source": "hugeicons/hugeicons",
+      "sourceType": "github",
+      "skillPath": "skills/hugeicons/SKILL.md",
+      "computedHash": "6de3ca2b27140a1905c6eb8ff52de7d40df74004b936afc7c16c7a13ec33b03c"
+    }
+  }
+}
