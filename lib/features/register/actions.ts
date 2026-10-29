@@ -25,8 +25,8 @@ export async function registerAccreditation(
   const dto = normalizeRegisterInput(parsed.data);
 
   try {
-    const id = await insertAccreditation(dto);
-    return { ok: true, id };
+    const { id, accessCode } = await insertAccreditation(dto);
+    return { ok: true, id, accessCode };
   } catch (error) {
     if (error instanceof DuplicateEmailError) {
       return { ok: false, code: "DUPLICATE_EMAIL", message: error.message };

@@ -13,7 +13,7 @@ export type RegisterActionErrorCode =
   | "DB_ERROR";
 
 export type RegisterActionResponse =
-  | { ok: true; id: number }
+  | { ok: true; id: number; accessCode: string }
   | { ok: false; code: RegisterActionErrorCode; message: string };
 
 export function normalizeRegisterInput(

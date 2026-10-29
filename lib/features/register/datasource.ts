@@ -1,5 +1,6 @@
 import oracledb from "oracledb";
 import { withConnection } from "@/lib/db/oracle-client";
+import { generateAccessCode } from "./access-code";
 import type { RegisterAccreditationDto } from "./dto";
 
 export class DuplicateEmailError extends Error {
@@ -15,20 +16,23 @@ function isUniqueConstraintError(error: unknown): boolean {
 
 export async function insertAccreditation(
   dto: RegisterAccreditationDto,
-): Promise<number> {
+): Promise<{ id: number; accessCode: string }> {
+  const accessCode = generateAccessCode();
+
   try {
     return await withConnection(async (connection) => {
       const result = await connection.execute<{
         id: [number] | number;
       }>(
-        `INSERT INTO accreditations (name, lastname, country, email)
-         VALUES (:name, :lastname, :country, :email)
+        `INSERT INTO accreditations (name, lastname, country, email, access_code)
+         VALUES (:name, :lastname, :country, :email, :accessCode)
          RETURNING id INTO :id`,
         {
           name: dto.name,
           lastname: dto.lastname,
           country: dto.country,
           email: dto.email,
+          accessCode,
           id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
         },
         { autoCommit: true },
@@ -41,7 +45,7 @@ export async function insertAccreditation(
         throw new Error("Oracle no devolvió un id válido para la inserción.");
       }
 
-      return id;
+      return { id, accessCode };
     });
   } catch (error) {
     if (isUniqueConstraintError(error)) {

@@ -1,107 +1,33 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Button,
-  Description,
-  FieldError,
-  Form,
-  InputGroup,
-  Label,
-  TextField,
-} from "@heroui/react";
-import { type ReactNode } from "react";
-import { Control, Controller, useForm } from "react-hook-form";
+import { Button, Form } from "@heroui/react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { registerAccreditation } from "@/lib/features/register/actions";
-import { registerSchema, type RegisterSchema } from "@/lib/features/register/schema";
-import { GlobeIcon, IdCardIcon, MailIcon } from "./icons";
+import {
+  registerSchema,
+  type RegisterSchema,
+} from "@/lib/features/register/schema";
+import { AlertCircleIcon, GlobeIcon, IdCardIcon, MailIcon } from "./icons";
+import { TextFieldControl } from "./register-field";
+import { folioLabel, type CredentialData } from "./register-success";
 
 type FormValues = RegisterSchema;
-type TextFieldName = keyof FormValues;
 
-const labelClass =
-  "text-[11px] font-semibold uppercase tracking-[0.14em] text-white/80";
-const descriptionClass = "text-xs text-muted/70";
 const groupHeadingClass =
-  "text-[10px] font-semibold uppercase tracking-[0.16em] text-gold/70";
+  "text-[10px] font-semibold uppercase tracking-[0.16em] text-gold-ink/70";
 
-function RequiredMark() {
-  return (
-    <span aria-hidden="true" className="ml-0.5 text-gold">
-      *
-    </span>
-  );
-}
-
-function TextFieldControl({
-  control,
-  name,
-  label,
-  placeholder,
-  autoComplete,
-  icon,
-  description,
-  type = "text",
+export function RegisterForm({
+  onSuccess,
 }: {
-  control: Control<FormValues>;
-  name: TextFieldName;
-  label: string;
-  placeholder: string;
-  autoComplete?: string;
-  icon: ReactNode;
-  description?: string;
-  type?: "text" | "email";
+  onSuccess: (credential: CredentialData) => void;
 }) {
-  return (
-    <Controller
-      control={control}
-      name={name}
-      render={({ field, fieldState }) => (
-        <TextField
-          className="w-full gap-1.5"
-          isInvalid={fieldState.invalid}
-          isRequired
-          name={field.name}
-          value={field.value}
-          onChange={field.onChange}
-        >
-          <Label className={labelClass}>
-            {label}
-            <RequiredMark />
-          </Label>
-          <InputGroup fullWidth>
-            <InputGroup.Input
-              aria-required
-              autoComplete={autoComplete}
-              className="py-2.5 text-sm"
-              onBlur={field.onBlur}
-              placeholder={placeholder}
-              type={type}
-            />
-            <InputGroup.Suffix className="text-muted/45">
-              {icon}
-            </InputGroup.Suffix>
-          </InputGroup>
-          {description ? (
-            <Description className={descriptionClass}>
-              {description}
-            </Description>
-          ) : null}
-          <FieldError className="mt-0.5 text-xs font-medium text-[#ef4444]">
-            {fieldState.error?.message}
-          </FieldError>
-        </TextField>
-      )}
-    />
-  );
-}
-
-export function RegisterForm() {
+  const [formError, setFormError] = useState<string | null>(null);
   const {
     control,
     handleSubmit,
-    reset,
     setError,
     formState: { isSubmitting },
   } = useForm<FormValues>({
@@ -117,23 +43,29 @@ export function RegisterForm() {
   });
 
   const onSubmit = handleSubmit(async (values) => {
+    setFormError(null);
     const result = await registerAccreditation(values);
 
     if (result.ok) {
-      reset();
       toast.success("Solicitud registrada correctamente", {
-        description:
-          "Su solicitud de acreditación quedó registrada y será revisada por el comité organizador.",
+        description: `Folio ${folioLabel(result.id)}. Guárdela o descárguela desde la credencial.`,
         duration: 8000,
+      });
+      onSuccess({
+        id: result.id,
+        name: values.name.trim(),
+        lastname: values.lastname.trim(),
+        accessCode: result.accessCode,
       });
       return;
     }
 
     if (result.code === "DUPLICATE_EMAIL") {
       setError("email", { message: result.message });
+      return;
     }
 
-    toast.error(result.message);
+    setFormError(result.message);
   });
 
   return (
@@ -143,6 +75,16 @@ export function RegisterForm() {
       onSubmit={onSubmit}
       validationBehavior="aria"
     >
+      {formError ? (
+        <div
+          className="flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3"
+          role="alert"
+        >
+          <AlertCircleIcon className="mt-0.5 size-4 shrink-0 text-danger" />
+          <p className="text-xs leading-relaxed text-danger">{formError}</p>
+        </div>
+      ) : null}
+
       <section className="flex flex-col gap-5">
         <div className="flex flex-col gap-3">
           <h3 className={groupHeadingClass}>Datos personales</h3>
@@ -196,7 +138,7 @@ export function RegisterForm() {
 
       <div className="flex flex-col gap-3">
         <Button
-          className="h-12 rounded-full text-sm font-semibold shadow-lg shadow-black/40 transition-transform hover:-translate-y-0.5"
+          className="h-12 rounded-full text-sm font-semibold shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5 dark:shadow-black/40"
           fullWidth
           isDisabled={isSubmitting}
           isPending={isSubmitting}

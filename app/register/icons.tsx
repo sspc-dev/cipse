@@ -139,3 +139,13 @@ export function MedalIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function AlertCircleIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 8v4.5" />
+      <path d="M12 16h.01" />
+    </svg>
+  );
+}
