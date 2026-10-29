@@ -1,5 +1,5 @@
-import oracledb from "oracledb";
-import { withConnection } from "@/lib/db/oracle-client";
+import type { ResultSetHeader } from "mysql2/promise";
+import { withConnection } from "@/lib/db/mysql-client";
 import { generateAccessCode } from "./access-code";
 import type { RegisterAccreditationDto } from "./dto";
 
@@ -10,8 +10,11 @@ export class DuplicateEmailError extends Error {
   }
 }
 
-function isUniqueConstraintError(error: unknown): boolean {
-  return (error as { errorNum?: number } | null)?.errorNum === 1;
+function isDuplicateKeyError(error: unknown): boolean {
+  const errno = (error as { errno?: number } | null)?.errno;
+  const code = (error as { code?: string } | null)?.code;
+
+  return errno === 1062 || code === "ER_DUP_ENTRY";
 }
 
 export async function insertAccreditation(
@@ -21,34 +24,22 @@ export async function insertAccreditation(
 
   try {
     return await withConnection(async (connection) => {
-      const result = await connection.execute<{
-        id: [number] | number;
-      }>(
+      const [result] = await connection.query<ResultSetHeader>(
         `INSERT INTO accreditations (name, lastname, country, email, access_code)
-         VALUES (:name, :lastname, :country, :email, :accessCode)
-         RETURNING id INTO :id`,
-        {
-          name: dto.name,
-          lastname: dto.lastname,
-          country: dto.country,
-          email: dto.email,
-          accessCode,
-          id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER },
-        },
-        { autoCommit: true },
+         VALUES (?, ?, ?, ?, ?)`,
+        [dto.name, dto.lastname, dto.country, dto.email, accessCode],
       );
 
-      const rawId = result.outBinds?.id;
-      const id = Array.isArray(rawId) ? rawId[0] : rawId;
+      const id = result.insertId;
 
-      if (typeof id !== "number" || !Number.isInteger(id)) {
-        throw new Error("Oracle no devolvió un id válido para la inserción.");
+      if (typeof id !== "number" || id <= 0) {
+        throw new Error("MySQL no devolvió un id válido para la inserción.");
       }
 
       return { id, accessCode };
     });
   } catch (error) {
-    if (isUniqueConstraintError(error)) {
+    if (isDuplicateKeyError(error)) {
       throw new DuplicateEmailError();
     }
     throw error;

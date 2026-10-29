@@ -1,11 +1,33 @@
 "use server";
 
+import { headers } from "next/headers";
+import { withConnection } from "@/lib/db/mysql-client";
 import {
   normalizeRegisterInput,
   type RegisterActionResponse,
 } from "./dto";
+import { sendCredentialEmail, type EmailDelivery } from "./email";
 import { DuplicateEmailError, insertAccreditation } from "./datasource";
 import { registerSchema } from "./schema";
+
+async function recordEmailDelivery(
+  accreditationId: number,
+): Promise<void> {
+  try {
+    await withConnection(async (connection) => {
+      await connection.query(
+        "UPDATE accreditations SET access_email_sent_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [accreditationId],
+      );
+      await connection.commit();
+    });
+  } catch (error) {
+    console.error(
+      "[recordEmailDelivery] No se pudo registrar el estado del envío:",
+      error,
+    );
+  }
+}
 
 export async function registerAccreditation(
   input: unknown,
@@ -26,7 +48,26 @@ export async function registerAccreditation(
 
   try {
     const { id, accessCode } = await insertAccreditation(dto);
-    return { ok: true, id, accessCode };
+    const folio = `CIPSE-${String(id).padStart(4, "0")}`;
+
+    const headerList = await headers();
+    const host = headerList.get("host") ?? "localhost:3000";
+    const protocol = headerList.get("x-forwarded-proto") ?? "http";
+    const origin = `${protocol}://${host}`;
+
+    const emailDelivery = await sendCredentialEmail({
+      to: dto.email,
+      folio,
+      fullName: `${dto.name} ${dto.lastname}`,
+      accessCode,
+      origin,
+    });
+
+    if (emailDelivery.state === "sent") {
+      await recordEmailDelivery(id);
+    }
+
+    return { ok: true, id, accessCode, emailDelivery };
   } catch (error) {
     if (error instanceof DuplicateEmailError) {
       return { ok: false, code: "DUPLICATE_EMAIL", message: error.message };

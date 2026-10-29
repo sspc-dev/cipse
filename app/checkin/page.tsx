@@ -1,10 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { Suspense } from "react";
-import { hasAdminSession } from "@/lib/features/checkin/actions";
-import { findAccreditationByCode } from "@/lib/features/checkin/datasource";
+import { getAdminSession } from "@/lib/features/auth/actions";
+import {
+  attendanceDaysFor,
+  findAccreditationByCode,
+  findAttendanceToday,
+} from "@/lib/features/checkin/datasource";
 import { accessCodeSchema } from "@/lib/features/checkin/schemas";
-import { AttendancePanel } from "./attendance-panel";
+import { labelStatus } from "@/lib/features/checkin/status";
+import { AttendancePanel } from "@/lib/features/checkin/components/attendance-panel";
 import { CodeEntryForm } from "./code-entry-form";
 import { ShieldIcon } from "@/app/register/icons";
 
@@ -17,12 +22,6 @@ export const metadata: Metadata = {
 
 const gridOverlayClass =
   "absolute inset-0 opacity-[0.12] bg-[linear-gradient(to_right,rgba(255,255,255,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:48px_48px]";
-
-const statusLabels: Record<string, string> = {
-  PENDING: "Pendiente de revisión",
-  APPROVED: "Aprobada",
-  REJECTED: "Rechazada",
-};
 
 function CheckinSkeleton() {
   return (
@@ -44,8 +43,7 @@ async function CheckinResolution({
   const record =
     accessCode === null ? null : await findAccreditationByCode(accessCode);
 
-  if (!record || accessCode === null) {
-    return (
+  if (!record || accessCode === null) {    return (
       <div className="flex flex-col gap-4">
         <p
           className="rounded-xl border border-border/60 bg-background/60 px-3.5 py-3 text-xs leading-relaxed text-muted"
@@ -60,20 +58,26 @@ async function CheckinResolution({
     );
   }
 
+  const [todayAttendance, attendanceDays] = await Promise.all([
+    findAttendanceToday(record.id),
+    attendanceDaysFor(record.id),
+  ]);
+
   return (
     <AttendancePanel
       accessCode={accessCode}
-      adminSessionValid={await hasAdminSession()}
+      adminSessionValid={(await getAdminSession()) !== null}
       delegado={{
         folio: `CIPSE-${String(record.id).padStart(4, "0")}`,
         name: record.name,
         lastname: record.lastname,
         country: record.country,
-        status: statusLabels[record.status] ?? record.status,
+        status: labelStatus(record.status),
       }}
       initialCheckedInAt={
-        record.checkedInAt ? record.checkedInAt.toISOString() : null
+        todayAttendance ? todayAttendance.toISOString() : null
       }
+      initialAttendanceDays={attendanceDays}
     />
   );
 }

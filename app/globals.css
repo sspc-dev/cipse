@@ -138,6 +138,22 @@ body {
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/*
+ * Glassmorphism sobre tokens del tema: superficie translúcida + desenfoque
+ * del contenido detrás. Solo fondo y desenfoque: el borde lo define cada
+ * componente con utilidades Tailwind (border border-border) para que los
+ * estados hover sigan funcionando.
+ */
+.glass {
+  background: color-mix(in oklab, var(--surface) 65%, transparent);
+  backdrop-filter: blur(16px) saturate(1.15);
+}
+
+.glass-soft {
+  background: color-mix(in oklab, var(--surface) 40%, transparent);
+  backdrop-filter: blur(10px);
+}
+
 ::selection {
   background: rgba(197, 155, 39, 0.32);
   color: #ffffff;
@@ -169,8 +185,102 @@ body {
   animation: card-enter 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* Revelado escalonado para entradas de contenido */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.reveal {
+  animation: fade-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Aparición con escala para la credencial QR */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.pop-in {
+  animation: scale-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes check-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.check-pop {
+  animation: check-pop 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Barrido de brillo a lo largo de la franja tricolor */
+@keyframes strip-shine {
+  from {
+    transform: translateX(-120%);
+  }
+  to {
+    transform: translateX(120%);
+  }
+}
+
+.strip-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.75) 50%,
+    transparent 80%
+  );
+  animation: strip-shine 2.6s cubic-bezier(0.4, 0, 0.2, 1) 0.35s 2 both;
+  pointer-events: none;
+}
+
+/* Movimiento lento de zoom suave para la imagen editorial del panel */
+@keyframes ken-burns {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.06);
+  }
+}
+
+.ken-burns {
+  animation: ken-burns 22s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card-enter {
+  .card-enter,
+  .reveal,
+  .pop-in,
+  .check-pop,
+  .strip-shine::after,
+  .ken-burns {
     animation: none;
   }
 }

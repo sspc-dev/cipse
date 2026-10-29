@@ -1,19 +1,23 @@
 "use client";
 
-import { AlertCircleIcon, CheckIcon } from "@/app/register/icons";
+import { AlertCircleIcon, CheckIcon, ClockIcon } from "@/app/register/icons";
+import { AdminLoginForm } from "@/lib/features/auth/components/admin-login-form";
 import type {
   CheckinActionResponse,
   CheckinRecordSummary,
 } from "@/lib/features/checkin/actions";
-import { authenticateAdmin, registerAttendance } from "@/lib/features/checkin/actions";
-import { Button, Input, Label, TextField } from "@heroui/react";
+import { registerAttendance } from "@/lib/features/checkin/actions";
+import { Button } from "@heroui/react";
 import { useState } from "react";
 
 type AttendancePanelProps = {
   accessCode: string;
   adminSessionValid: boolean;
   delegado: CheckinRecordSummary;
+  /** Hora de la asistencia de HOY (null si no se ha registrado el día actual). */
   initialCheckedInAt: string | null;
+  initialAttendanceDays: number;
+  onAttendanceRegistered?: () => void;
 };
 
 function formatCheckinTime(iso: string): string {
@@ -37,16 +41,17 @@ export function AttendancePanel({
   adminSessionValid,
   delegado,
   initialCheckedInAt,
+  initialAttendanceDays,
+  onAttendanceRegistered,
 }: AttendancePanelProps) {
   const [sessionValid, setSessionValid] = useState(adminSessionValid);
-  const [adminKey, setAdminKey] = useState("");
-  const [keyError, setKeyError] = useState<string | null>(null);
   const [result, setResult] = useState<CheckinActionResponse | null>(
     initialCheckedInAt
       ? {
           ok: true,
-          alreadyCheckedIn: true,
-          checkedInAt: initialCheckedInAt,
+          alreadyToday: true,
+          attendedAt: initialCheckedInAt,
+          attendanceDays: initialAttendanceDays,
           record: delegado,
         }
       : null,
@@ -54,22 +59,7 @@ export function AttendancePanel({
   const [isPending, setIsPending] = useState(false);
 
   const isApproved = delegado.status === "Aprobada";
-  const checkedInAt = result?.ok ? result.checkedInAt : null;
-
-  async function submitAdminKey() {
-    if (isPending) return;
-
-    setIsPending(true);
-    setKeyError(null);
-    const outcome = await authenticateAdmin(adminKey);
-    setIsPending(false);
-
-    if (!outcome.ok) {
-      setKeyError("Clave incorrecta. Intente de nuevo.");
-      return;
-    }
-    setSessionValid(true);
-  }
+  const attendedAt = result?.ok ? result.attendedAt : "";
 
   async function submitAttendance() {
     if (isPending) return;
@@ -78,6 +68,10 @@ export function AttendancePanel({
     const outcome = await registerAttendance(accessCode);
     setIsPending(false);
     setResult(outcome);
+
+    if (outcome.ok && !outcome.alreadyToday) {
+      onAttendanceRegistered?.();
+    }
   }
 
   return (
@@ -119,51 +113,35 @@ export function AttendancePanel({
       ) : null}
 
       {!sessionValid ? (
-        <form className="flex flex-col gap-2" onSubmit={(event) => {
-          event.preventDefault();
-          void submitAdminKey();
-        }}>
-          <TextField isRequired name="admin-key" onChange={setAdminKey} value={adminKey}>
-            <Label className="text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80">
-              Clave de acreditación
-            </Label>
-            <Input
-              aria-required
-              autoComplete="current-password"
-              className="mt-1.5 py-2.5 text-sm"
-              placeholder="Clave del personal acreditador"
-              type="password"
-            />
-          </TextField>
-          <Button
-            isDisabled={isPending || adminKey.trim().length === 0}
-            isPending={isPending}
-            onPress={() => void submitAdminKey()}
-            type="submit"
-            variant="primary"
-          >
-            Entrar
-          </Button>
-          {keyError ? (
-            <p className="text-xs font-medium text-danger" role="alert">
-              {keyError}
-            </p>
-          ) : null}
-        </form>
+        <>
+          <AdminLoginForm onSuccess={() => setSessionValid(true)} />
+        </>
       ) : (
         <div className="flex flex-col gap-2">
           {result?.ok ? (
-            <p
-              className="flex items-start gap-2.5 rounded-xl border border-accent/30 bg-accent-soft px-3.5 py-3 text-xs leading-relaxed text-accent-soft-foreground"
-              role="status"
-            >
-              <CheckIcon className="mt-0.5 size-4 shrink-0" />
-              {result.alreadyCheckedIn
-                ? `La asistencia ya estaba registrada${
-                    checkedInAt ? ` el ${formatCheckinTime(checkedInAt)}` : "."
-                  }`
-                : `Asistencia registrada${checkedInAt ? ` el ${formatCheckinTime(checkedInAt)}` : ""}`}
-            </p>
+            result.alreadyToday ? (
+              <p
+                className="flex items-start gap-2.5 rounded-xl border border-gold/30 bg-gold/10 px-3.5 py-3 text-xs leading-relaxed text-gold-ink"
+                role="status"
+              >
+                <ClockIcon className="mt-0.5 size-4 shrink-0" />
+                {`Ya fue registrada hoy${attendedAt ? ` a las ${formatCheckinTime(attendedAt)}` : ""} · `}
+                <span className="font-semibold">
+                  Día {result.attendanceDays} de asistencia
+                </span>
+              </p>
+            ) : (
+              <p
+                className="flex items-start gap-2.5 rounded-xl border border-accent/30 bg-accent-soft px-3.5 py-3 text-xs leading-relaxed text-accent-soft-foreground"
+                role="status"
+              >
+                <CheckIcon className="mt-0.5 size-4 shrink-0" />
+                {`Asistencia del día registrada${attendedAt ? ` a las ${formatCheckinTime(attendedAt)}` : ""} · `}
+                <span className="font-semibold">
+                  Día {result.attendanceDays} de asistencia
+                </span>
+              </p>
+            )
           ) : null}
 
           {result && !result.ok ? (
@@ -183,7 +161,7 @@ export function AttendancePanel({
             onPress={() => void submitAttendance()}
             variant="primary"
           >
-            Registrar asistencia
+            Registrar asistencia de hoy
           </Button>
         </div>
       )}

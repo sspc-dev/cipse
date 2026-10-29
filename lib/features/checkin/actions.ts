@@ -1,16 +1,11 @@
 "use server";
 
-import crypto from "node:crypto";
-import { cookies } from "next/headers";
-import { adminKeySchema } from "./schemas";
+import { accessCodeSchema } from "./schemas";
 import {
   findAccreditationByCode,
-  markAttendance,
+  registerAttendanceByDay,
 } from "./datasource";
-
-const SESSION_COOKIE = "cipse_admin_session";
-const SESSION_PURPOSE = "cipse-checkin-admin-v1";
-const SESSION_TTL_HOURS = 8;
+import { getAdminSession } from "@/lib/features/auth/actions";
 
 export type CheckinActionErrorCode =
   | "SESSION_REQUIRED"
@@ -33,78 +28,100 @@ export type CheckinActionResponse =
     }
   | {
       ok: true;
-      alreadyCheckedIn: boolean;
-      checkedInAt: string | null;
+      /** Ya existía asistencia para hoy (primera lectura del día ya registrada). */
+      alreadyToday: boolean;
+      /** Hora de la asistencia del día actual. */
+      attendedAt: string;
+      /** Total de días con asistencia del delegado (incluido hoy). */
+      attendanceDays: number;
       record: CheckinRecordSummary;
     };
-
-/*
- * La cookie no guarda la clave: guarda un HMAC de propósito fijo derivado
- * de ella (token de capacidad). La validación recalcula el HMAC esperado
- * con la clave del entorno y compara de forma constante.
- */
-function expectedSessionToken(): string | null {
-  const adminKey = process.env["ADMIN_CHECKIN_KEY"];
-  if (!adminKey) return null;
-
-  return crypto
-    .createHmac("sha256", adminKey)
-    .update(SESSION_PURPOSE)
-    .digest("hex");
-}
-
-export async function hasAdminSession(): Promise<boolean> {
-  const expected = expectedSessionToken();
-  if (!expected) return false;
-
-  const store = await cookies();
-  const actual = store.get(SESSION_COOKIE)?.value;
-  if (!actual || actual.length !== expected.length) return false;
-
-  return crypto.timingSafeEqual(Buffer.from(actual), Buffer.from(expected));
-}
-
-export async function authenticateAdmin(
-  adminKey: string,
-): Promise<{ ok: boolean }> {
-  const parsed = adminKeySchema.safeParse(adminKey);
-  if (!parsed.success) return { ok: false };
-
-  const expected = process.env["ADMIN_CHECKIN_KEY"];
-
-  if (
-    !expected ||
-    parsed.data.length !== expected.length ||
-    !crypto.timingSafeEqual(Buffer.from(parsed.data), Buffer.from(expected))
-  ) {
-    return { ok: false };
-  }
-
-  const store = await cookies();
-  store.set(SESSION_COOKIE, expectedSessionToken() ?? "", {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_TTL_HOURS * 60 * 60,
-  });
-
-  return { ok: true };
-}
 
 export async function registerAttendance(
   accessCode: string,
 ): Promise<CheckinActionResponse> {
-  if (!(await hasAdminSession())) {
+  const session = await getAdminSession();
+
+  if (!session) {
     return {
       ok: false,
       code: "SESSION_REQUIRED",
-      message: "Se requiere la clave de acreditación para registrar asistencia.",
+      message:
+        "Inicie sesión de acreditador para registrar asistencia.",
+    };
+  }
+
+  const parsed = accessCodeSchema.safeParse(accessCode);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "INVALID_CODE",
+      message: "El código no corresponde a un registro válido.",
     };
   }
 
   try {
-    const record = await findAccreditationByCode(accessCode);
+    const result = await registerAttendanceByDay(
+      parsed.data,
+      session.name.slice(0, 120),
+    );
+
+    if (!result) {
+      return {
+        ok: false,
+        code: "INVALID_CODE",
+        message: "El código no corresponde a un registro válido.",
+      };
+    }
+
+    return {
+      ok: true,
+      alreadyToday: !result.created,
+      attendedAt: result.attendedAt.toISOString(),
+      attendanceDays: result.attendanceDays,
+      record: {
+        folio: `CIPSE-${String(result.record.id).padStart(4, "0")}`,
+        name: result.record.name,
+        lastname: result.record.lastname,
+        country: result.record.country,
+        status: result.record.status,
+      },
+    };
+  } catch (error) {
+    console.error("[registerAttendance] Error:", error);
+    return {
+      ok: false,
+      code: "DB_ERROR",
+      message:
+        "No fue posible registrar la asistencia. Intente de nuevo más tarde.",
+    };
+  }
+}
+
+export async function lookupAccreditation(
+  accessCode: string,
+): Promise<CheckinActionResponse> {
+  const session = await getAdminSession();
+
+  if (!session) {
+    return {
+      ok: false,
+      code: "SESSION_REQUIRED",
+      message: "Inicie sesión de acreditador para consultar credenciales.",
+    };
+  }
+
+  const parsed = accessCodeSchema.safeParse(accessCode);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      code: "INVALID_CODE",
+      message: "El código no corresponde a un registro válido.",
+    };
+  }
+
+  try {
+    const record = await findAccreditationByCode(parsed.data);
 
     if (!record) {
       return {
@@ -114,44 +131,25 @@ export async function registerAttendance(
       };
     }
 
-    const summary: CheckinRecordSummary = {
-      folio: `CIPSE-${String(record.id).padStart(4, "0")}`,
-      name: record.name,
-      lastname: record.lastname,
-      country: record.country,
-      status: record.status,
-    };
-
-    if (record.checkedInAt) {
-      return {
-        ok: true,
-        alreadyCheckedIn: true,
-        checkedInAt: record.checkedInAt.toISOString(),
-        record: summary,
-      };
-    }
-
-    const adminName = (process.env["ADMIN_CHECKIN_USER"] ?? "Acreditación CIPSE").slice(
-      0,
-      120,
-    );
-    await markAttendance(accessCode, adminName);
-
-    const updated = await findAccreditationByCode(accessCode);
-
     return {
       ok: true,
-      alreadyCheckedIn: false,
-      checkedInAt: updated?.checkedInAt?.toISOString() ?? null,
-      record: summary,
+      alreadyToday: false,
+      attendedAt: record.checkedInAt?.toISOString() ?? "",
+      attendanceDays: 0,
+      record: {
+        folio: `CIPSE-${String(record.id).padStart(4, "0")}`,
+        name: record.name,
+        lastname: record.lastname,
+        country: record.country,
+        status: record.status,
+      },
     };
   } catch (error) {
-    console.error("[registerAttendance] Error:", error);
+    console.error("[lookupAccreditation] Error:", error);
     return {
       ok: false,
       code: "DB_ERROR",
-      message:
-        "No fue posible registrar la asistencia. Intente de nuevo más tarde.",
+      message: "No fue posible consultar la credencial. Intente de nuevo.",
     };
   }
 }

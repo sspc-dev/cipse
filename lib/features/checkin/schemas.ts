@@ -6,5 +6,3 @@ export const accessCodeSchema = z
   .min(16, "Código de acceso inválido.")
   .max(64, "Código de acceso inválido.")
   .regex(/^[a-zA-Z0-9]+$/, "Código de acceso inválido.");
-
-export const adminKeySchema = z.string().trim().min(1, "Ingrese la clave.");

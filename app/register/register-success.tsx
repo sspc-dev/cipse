@@ -14,6 +14,7 @@ export type CredentialData = {
   name: string;
   lastname: string;
   accessCode: string;
+  emailDelivery?: { state: "sent" | "failed" | "skipped" };
 };
 
 export function credentialCheckinUrl(
@@ -134,7 +135,7 @@ export function QrCredentialCard({ credential }: { credential: CredentialData })
       className="card-enter flex flex-col items-center gap-6 py-2 text-center"
       role="status"
     >
-      <div className="flex size-16 items-center justify-center rounded-full border border-accent/30 bg-accent-soft">
+      <div className="check-pop flex size-16 items-center justify-center rounded-full border border-accent/30 bg-accent-soft">
         <CheckIcon className="size-7 text-accent-soft-foreground" />
       </div>
 
@@ -151,7 +152,7 @@ export function QrCredentialCard({ credential }: { credential: CredentialData })
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-white p-5 shadow-[0_18px_50px_-24px_rgba(16,24,29,0.35)]">
+      <div className="pop-in flex flex-col items-center gap-3 rounded-2xl border border-border bg-white p-5 shadow-[0_18px_50px_-24px_rgba(16,24,29,0.35)]">
         <div className="relative" style={{ width: QR_SIZE, height: QR_SIZE }}>
           {qrDataUrl ? (
             /* El QR es un dataURL que no debe pasar por optimización de next/image. */
@@ -200,6 +201,24 @@ export function QrCredentialCard({ credential }: { credential: CredentialData })
             pendiente de revisión
           </dd>
         </div>
+        {credential.emailDelivery ? (
+          <div className="flex items-center justify-between gap-3">
+            <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
+              Correo
+            </dt>
+            <dd
+              className={
+                credential.emailDelivery.state === "sent"
+                  ? "text-xs font-semibold text-accent-soft-foreground"
+                  : "text-xs font-semibold text-gold-ink"
+              }
+            >
+              {credential.emailDelivery.state === "sent"
+                ? "Credencial enviada a su correo"
+                : "Sin envío: guarde o descargue su QR aquí"}
+            </dd>
+          </div>
+        ) : null}
       </dl>
 
       <div className="flex w-full flex-col gap-2 sm:flex-row">

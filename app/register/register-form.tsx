@@ -47,7 +47,14 @@ export function RegisterForm({
     const result = await registerAccreditation(values);
 
     if (result.ok) {
-      toast.success("Solicitud registrada correctamente", {
+      const deliveryToast =
+        result.emailDelivery.state === "sent"
+          ? "Solicitud registrada correctamente"
+          : result.emailDelivery.state === "skipped"
+            ? "Solicitud registrada (sin envío de correo configurado)"
+            : "Solicitud registrada (no se pudo enviar el correo)";
+
+      toast.success(deliveryToast, {
         description: `Folio ${folioLabel(result.id)}. Guárdela o descárguela desde la credencial.`,
         duration: 8000,
       });
@@ -56,6 +63,7 @@ export function RegisterForm({
         name: values.name.trim(),
         lastname: values.lastname.trim(),
         accessCode: result.accessCode,
+        emailDelivery: { state: result.emailDelivery.state },
       });
       return;
     }

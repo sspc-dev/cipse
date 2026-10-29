@@ -1,33 +1,36 @@
-import oracledb from "oracledb";
+import mysql from "mysql2/promise";
 
-const { ORACLE_USER, ORACLE_PASSWORD, ORACLE_CONNECT_STRING } = process.env;
+const { MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE } =
+  process.env;
 
-if (!ORACLE_USER || !ORACLE_PASSWORD || !ORACLE_CONNECT_STRING) {
+if (!MYSQL_USER || !MYSQL_PASSWORD || !MYSQL_DATABASE) {
   console.error(
-    "Configure ORACLE_USER, ORACLE_PASSWORD y ORACLE_CONNECT_STRING en .env.local.",
+    "Configure MYSQL_USER, MYSQL_PASSWORD y MYSQL_DATABASE en .env (por defecto: docker compose up -d).",
   );
   process.exit(1);
 }
 
 async function main() {
-  const pool = await oracledb.createPool({
-    user: ORACLE_USER,
-    password: ORACLE_PASSWORD,
-    connectString: ORACLE_CONNECT_STRING,
+  const connection = await mysql.createConnection({
+    host: MYSQL_HOST ?? "127.0.0.1",
+    port: Number(MYSQL_PORT ?? 3306),
+    user: MYSQL_USER,
+    password: MYSQL_PASSWORD,
+    database: MYSQL_DATABASE,
   });
 
-  const connection = await pool.getConnection();
-
   try {
-    const result = await connection.execute("SELECT 1 AS ok FROM DUAL");
-    console.log("Conexión Oracle correcta:", result.rows);
+    await connection.query("SELECT 1");
+    const [rows] = await connection.query(
+      "SELECT COUNT(*) AS total FROM accreditations",
+    );
+    console.log("Conexión MySQL correcta:", rows);
   } finally {
-    await connection.close();
-    await pool.close();
+    await connection.end();
   }
 }
 
 main().catch((error) => {
-  console.error("Fallo la conexión Oracle:", error);
+  console.error("Fallo la conexión MySQL:", error.message);
   process.exit(1);
 });

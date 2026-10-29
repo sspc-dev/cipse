@@ -1,4 +1,5 @@
 import type { RegisterSchema } from "./schema";
+import type { EmailDelivery } from "./email";
 
 export type RegisterAccreditationDto = {
   name: string;
@@ -13,7 +14,12 @@ export type RegisterActionErrorCode =
   | "DB_ERROR";
 
 export type RegisterActionResponse =
-  | { ok: true; id: number; accessCode: string }
+  | {
+      ok: true;
+      id: number;
+      accessCode: string;
+      emailDelivery: EmailDelivery;
+    }
   | { ok: false; code: RegisterActionErrorCode; message: string };
 
 export function normalizeRegisterInput(
