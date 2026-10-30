@@ -1,5 +1,6 @@
 import type { RowDataPacket } from "mysql2/promise";
 import { withConnection } from "@/lib/db/mysql-client";
+import { isoDayInCongressTime } from "./dates";
 import type { AdminListQuery } from "./schemas";
 
 export type AccreditationListRow = {
@@ -111,6 +112,54 @@ export async function listAccreditations(
   return result;
 }
 
+export type AccreditationCredentials = {
+  id: number;
+  name: string;
+  lastname: string;
+  email: string;
+  status: string;
+  accessCode: string;
+};
+
+/**
+ * Credencial de un delegado por id: datos mínimos para renderizar
+ * y descargar su QR desde la vista de impresión del panel.
+ */
+export async function findAccreditationById(
+  id: number,
+): Promise<AccreditationCredentials | null> {
+  const record = await withConnection(async (connection) => {
+    const [rows] = await connection.query<
+      (RowDataPacket & {
+        id: number;
+        name: string;
+        lastname: string;
+        email: string;
+        status: string;
+        access_code: string;
+      })[]
+    >(
+      `SELECT id, name, lastname, email, status, access_code
+       FROM accreditations
+       WHERE id = ?`,
+      [id],
+    );
+
+    return rows[0] ?? null;
+  });
+
+  if (!record) return null;
+
+  return {
+    id: Number(record.id),
+    name: record.name,
+    lastname: record.lastname,
+    email: record.email,
+    status: record.status,
+    accessCode: record.access_code,
+  };
+}
+
 export type AccreditationStats = {
   total: number;
   approved: number;
@@ -176,12 +225,17 @@ export async function getAttendanceByDay(
     rows.map((row) => [row.day, Number(row.registrados)]),
   );
 
+  /* La ventana se ancla al día del congreso (CDMX), no al huso del servidor:
+   * se recorre aritmética sobre mediodías UTC para evitar saltos de fecha. */
+  const todayIso = isoDayInCongressTime(new Date());
+  const [year, month, day] = todayIso.split("-").map(Number);
+  const anchorUtcNoon = Date.UTC(year, month - 1, day, 12);
+
   const days: AttendanceByDay[] = [];
-  const today = new Date();
   for (let offset = windowDays - 1; offset >= 0; offset -= 1) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - offset);
-    const iso = date.toISOString().slice(0, 10);
+    const iso = new Date(anchorUtcNoon - offset * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
 
     days.push({ day: iso, count: countsByDay.get(iso) ?? 0 });
   }

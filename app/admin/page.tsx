@@ -11,6 +11,9 @@ import {
 } from "@/lib/features/admin/datasource";
 import { adminListQuerySchema } from "@/lib/features/admin/schemas";
 import { labelStatus } from "@/lib/features/checkin/status";
+import { folioLabel } from "@/lib/features/register/credential";
+import { isoDayInCongressTime } from "@/lib/features/admin/dates";
+import { CONGRESS_TIME_ZONE } from "@/lib/constants";
 import {
   AlertCircleIcon,
   CheckIcon,
@@ -18,11 +21,13 @@ import {
   FingerprintIcon,
   IdCardIcon,
   MedalIcon,
+  PrinterIcon,
   ShieldIcon,
 } from "@/app/register/icons";
 import { AdminKeyGate } from "./admin-key-gate";
 import { AdminLogoutButton } from "./admin-logout-button";
 import { RowCheckinButton } from "./row-checkin-button";
+import { RowQrDownloadButton } from "./row-qr-download-button";
 import { RefreshButton } from "./refresh-button";
 import { ScannerPanel } from "./scanner-panel";
 
@@ -45,16 +50,18 @@ function SectionTitle({
   icon: React.JSX.Element;
   children: React.ReactNode;
 }) {
-  return <h2 className={sectionTitleLabelClass}>{icon}{children}</h2>;
-}
-
-function folioLabel(id: number): string {
-  return `CIPSE-${String(id).padStart(4, "0")}`;
+  return (
+    <h2 className={sectionTitleLabelClass}>
+      {icon}
+      {children}
+    </h2>
+  );
 }
 
 const dateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "short",
   timeStyle: "short",
+  timeZone: CONGRESS_TIME_ZONE,
 });
 
 function KpiSkeleton() {
@@ -64,11 +71,11 @@ function KpiSkeleton() {
         {[0, 1, 2, 3].map((index) => (
           <div
             key={index}
-            className="h-[86px] animate-pulse rounded-2xl bg-foreground/[0.05]"
+            className="h-21.5 animate-pulse rounded-2xl bg-foreground/5"
           />
         ))}
       </div>
-      <div className="h-64 animate-pulse rounded-2xl bg-foreground/[0.05]" />
+      <div className="h-64 animate-pulse rounded-2xl bg-foreground/5" />
     </div>
   );
 }
@@ -90,11 +97,12 @@ const statCardClass =
 const dayLabelFormatter = new Intl.DateTimeFormat("es-MX", {
   weekday: "short",
   day: "numeric",
+  timeZone: CONGRESS_TIME_ZONE,
 });
 
 function AttendanceByDayPanel({ days }: { days: AttendanceByDay[] }) {
   const max = Math.max(1, ...days.map((entry) => entry.count));
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = isoDayInCongressTime(new Date());
 
   return (
     <div className="reveal glass rounded-2xl border border-border px-4 py-3.5 shadow-sm dark:border-white/10 [animation-delay:150ms]">
@@ -113,7 +121,7 @@ function AttendanceByDayPanel({ days }: { days: AttendanceByDay[] }) {
                 {dayLabelFormatter.format(new Date(`${entry.day}T12:00:00Z`))}
               </span>
               <div
-                className="h-2 flex-1 overflow-hidden rounded-full bg-foreground/[0.06]"
+                className="h-2 flex-1 overflow-hidden rounded-full bg-foreground/6"
                 aria-hidden="true"
               >
                 <div
@@ -143,8 +151,7 @@ async function StatsPanels() {
       <KpiSection stats={stats} />
       <AttendanceByDayPanel days={byDay} />
       <p className="reveal px-1 text-[10px] leading-relaxed text-muted/80 [animation-delay:300ms]">
-        El listado y las estadísticas se actualizan al registrar una
-        asistencia.
+        El listado y las estadísticas se actualizan al registrar una asistencia.
       </p>
     </div>
   );
@@ -156,10 +163,26 @@ async function KpiSection({
   stats: Awaited<ReturnType<typeof getStats>>;
 }) {
   const cards: { value: number; label: string; icon: React.JSX.Element }[] = [
-    { value: stats.total, label: "Registrados", icon: <IdCardIcon className="size-4 text-muted" /> },
-    { value: stats.approved, label: "Aprobados", icon: <CheckIcon className="size-4 text-accent" /> },
-    { value: stats.pending, label: "Pendientes", icon: <MedalIcon className="size-4 text-gold-ink" /> },
-    { value: stats.checkedInToday, label: "Asistentes hoy", icon: <ClockIcon className="size-4 text-tactical-bright" /> },
+    {
+      value: stats.total,
+      label: "Registrados",
+      icon: <IdCardIcon className="size-4 text-muted" />,
+    },
+    {
+      value: stats.approved,
+      label: "Aprobados",
+      icon: <CheckIcon className="size-4 text-accent" />,
+    },
+    {
+      value: stats.pending,
+      label: "Pendientes",
+      icon: <MedalIcon className="size-4 text-gold-ink" />,
+    },
+    {
+      value: stats.checkedInToday,
+      label: "Asistentes hoy",
+      icon: <ClockIcon className="size-4 text-tactical-bright" />,
+    },
   ];
 
   return (
@@ -191,7 +214,7 @@ function ListSkeleton() {
       {[0, 1, 2].map((index) => (
         <div
           key={index}
-          className="h-16 animate-pulse rounded-xl bg-foreground/[0.05]"
+          className="h-16 animate-pulse rounded-xl bg-foreground/5"
         />
       ))}
     </div>
@@ -219,12 +242,17 @@ function RegistrationListItem({
 }: {
   registration: AccreditationListRow;
 }) {
+  const folio = folioLabel(registration.id);
+
+  const credentialActionClass =
+    "inline-flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground";
+
   return (
     <li className="reveal glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 transition-colors hover:border-accent/50 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 flex-col gap-0.5">
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="font-mono text-xs font-semibold tracking-[0.08em] text-gold-ink">
-            {folioLabel(registration.id)}
+            {folio}
           </span>
           <StatusChip status={labelStatus(registration.status)} />
           {registration.attendanceDays > 0 ? (
@@ -242,16 +270,35 @@ function RegistrationListItem({
         </p>
       </div>
 
-      <div className="flex items-center justify-between gap-3 sm:justify-end">
+      <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
         <p className="text-[11px] leading-relaxed text-muted">
           {registration.attendedToday
             ? `Registrado hoy a las ${dateTimeFormatter.format(registration.lastAttendanceAt ?? registration.createdAt)}`
             : `Solicitó el ${dateTimeFormatter.format(registration.createdAt)}`}
         </p>
-        <RowCheckinButton
-          accessCode={registration.accessCode}
-          attendedToday={registration.attendedToday}
-        />
+        <div className="flex items-center gap-2">
+          <RowQrDownloadButton
+            accessCode={registration.accessCode}
+            className={credentialActionClass}
+            id={registration.id}
+            lastname={registration.lastname}
+            name={registration.name}
+          />
+          <a
+            aria-label={`Imprimir credencial de ${folio}`}
+            className={credentialActionClass}
+            href={`/admin/credential/${registration.id}`}
+            rel="noreferrer"
+            target="_blank"
+          >
+            <PrinterIcon className="size-3.5" aria-hidden="true" />
+            Imprimir
+          </a>
+          <RowCheckinButton
+            accessCode={registration.accessCode}
+            attendedToday={registration.attendedToday}
+          />
+        </div>
       </div>
     </li>
   );
@@ -426,9 +473,9 @@ export default function AdminPage(props: PageProps<"/admin">) {
 function AdminSkeleton() {
   return (
     <div className="relative z-10 mx-auto max-w-5xl px-5 py-10 sm:px-8 lg:px-12">
-      <div className="mb-8 h-16 animate-pulse rounded-2xl bg-foreground/[0.05]" />
-      <div className="mb-8 h-72 animate-pulse rounded-2xl bg-foreground/[0.05]" />
-      <div className="h-56 animate-pulse rounded-2xl bg-foreground/[0.05]" />
+      <div className="mb-8 h-16 animate-pulse rounded-2xl bg-foreground/5" />
+      <div className="mb-8 h-72 animate-pulse rounded-2xl bg-foreground/5" />
+      <div className="h-56 animate-pulse rounded-2xl bg-foreground/5" />
     </div>
   );
 }
@@ -461,10 +508,10 @@ async function AdminContent({
           src="/imgs/bg-register.jpeg"
         />
 
-        <div className="absolute inset-0 bg-linear-to-t from-white/95 via-white/80 to-white/60 backdrop-blur-[2px] dark:from-[#070b11]/95 dark:via-[#070b11]/80 dark:to-[#06090e]/65" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/5 to-black/60 backdrop-blur-[2px] dark:from-[#070b11]/95 dark:via-[#070b11]/80 dark:to-[#06090e]/65" />
 
         <div className={loginGridOverlayClass} />
-        <div className="reveal absolute inset-x-4 top-10 mx-auto flex max-w-[420px] items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white/20 px-3 py-2 backdrop-blur-3xl shadow [animation-delay:150ms] sm:inset-x-8">
+        <div className="reveal absolute inset-x-4 top-10 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white/20 px-3 py-2 backdrop-blur-3xl shadow [animation-delay:150ms] sm:inset-x-8">
           <Image
             src="/imgs/SSPC_logo.png"
             alt="Logo de la Secretaría de Seguridad y Protección Ciudadana"
@@ -607,7 +654,11 @@ async function AdminContent({
             <RefreshButton />
           </div>
 
-          <form action="/admin" className="flex max-w-md items-center gap-2" method="get">
+          <form
+            action="/admin"
+            className="flex max-w-md items-center gap-2"
+            method="get"
+          >
             <div className="relative flex-1">
               <input
                 aria-label="Buscar por nombre, apellido, correo o folio"

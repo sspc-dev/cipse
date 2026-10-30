@@ -4,8 +4,8 @@
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { toBuffer } from "qrcode";
 import nodemailer, { type Transporter } from "nodemailer";
+import { generateCredentialQrPng } from "./qr";
 
 export type EmailDelivery =
   | { state: "sent" }
@@ -19,17 +19,6 @@ type CredentialEmailInput = {
   accessCode: string;
   origin: string;
 };
-
-/* Corrección de nivel H (~30 % de daño recuperable), igual que la credencial web. */
-const QR_OPTIONS = {
-  errorCorrectionLevel: "H",
-  margin: 2,
-  scale: 8,
-  color: {
-    dark: "#0a0f14",
-    light: "#ffffff",
-  },
-} as const;
 
 let transporterPromise: Promise<Transporter> | null = null;
 
@@ -96,8 +85,7 @@ export async function sendCredentialEmail(
       return { state: "skipped", reason: "SMTP no disponible." };
     }
 
-    const checkinUrl = `${input.origin}/checkin?c=${input.accessCode}`;
-    const qrPng = await toBuffer(checkinUrl, QR_OPTIONS);
+    const qrPng = await generateCredentialQrPng(input.accessCode, input.origin);
 
     const logoPath = path.join(process.cwd(), "public", "imgs", "SSPC.png");
     const logoPng = await readFile(logoPath);
