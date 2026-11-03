@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createAdminUser } from "@/lib/features/users/actions";
+import { PlusIcon, UsersIcon } from "@/components/icons";
 
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80";
@@ -46,7 +47,8 @@ export function CreateUserForm() {
       onSubmit={submit}
     >
       <div>
-        <h2 className="font-display text-base font-bold tracking-tight text-foreground">
+        <h2 className="flex items-center gap-2 font-display text-base font-bold tracking-tight text-foreground">
+          <PlusIcon className="size-4 text-tactical-bright" aria-hidden="true" />
           Nuevo acreditador
         </h2>
         <p className="mt-1 text-xs text-muted">
@@ -118,6 +120,7 @@ export function CreateUserForm() {
           type="submit"
           variant="primary"
         >
+          <UsersIcon className="size-4" aria-hidden="true" />
           Crear usuario
         </Button>
       </div>

@@ -85,7 +85,6 @@ async function CheckinResolution({
         name: record.name,
         lastname: record.lastname,
         country: record.country,
-        status: record.status,
       }}
       dictionary={dictionary}
       initialAttendanceDays={attendanceDays}

@@ -58,14 +58,6 @@ export function QrCredentialCard({
             {credential.name} {credential.lastname}
           </dd>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
-            {copy.status}
-          </dt>
-          <dd className="text-sm font-semibold text-foreground">
-            {copy.pending}
-          </dd>
-        </div>
         {credential.emailDelivery ? (
           <div className="flex items-center justify-between gap-3">
             <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">

@@ -26,11 +26,6 @@ export const en: Dictionary = {
     checkinDescription:
       "Credential verification and attendance registration for accredited CIPSE XV staff.",
   },
-  status: {
-    PENDING: "Pending review",
-    APPROVED: "Approved",
-    REJECTED: "Rejected",
-  },
   register: {
     sealAlt: "Seal of the Ministry of Security and Citizen Protection",
     coverAlt: "SSPC personnel during an operational deployment",
@@ -78,8 +73,6 @@ export const en: Dictionary = {
       description:
         "Present this access code on the day of the congress. Saving it is enough to certify your entry.",
       delegate: "Delegate",
-      status: "Status",
-      pending: "pending review",
       email: "Email",
       emailSent: "Credential sent to your email",
       emailNotSent: "Not sent: save or download your QR here",
@@ -123,12 +116,9 @@ export const en: Dictionary = {
       "The scanned code does not match a valid accreditation.",
     scanPrompt:
       "Scan the delegate's QR credential or enter the code manually.",
-    notApproved:
-      "This accreditation is not approved. Confirm with the person in charge before registering attendance.",
     folio: "Reference",
     delegate: "Delegate",
     country: "Country",
-    status: "Status",
     alreadyToday: "Already registered today{time}",
     registeredToday: "Today's attendance registered{time}",
     timeSuffix: " at {time}",

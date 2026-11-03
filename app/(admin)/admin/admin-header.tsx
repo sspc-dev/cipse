@@ -1,14 +1,40 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AdminLogoutButton } from "./admin-logout-button";
-import { ShieldIcon } from "@/components/icons";
+import {
+  IdCardIcon,
+  ImageIcon,
+  ShieldIcon,
+  UsersIcon,
+  type IconProps,
+} from "@/components/icons";
 
 export type AdminSection = "acreditaciones" | "usuarios" | "multimedia";
 
-const NAV_ITEMS: { section: AdminSection; label: string; href: string }[] = [
-  { section: "acreditaciones", label: "Acreditaciones", href: "/admin" },
-  { section: "usuarios", label: "Usuarios", href: "/admin/usuarios" },
-  { section: "multimedia", label: "Multimedia", href: "/admin/multimedia" },
+const NAV_ITEMS: {
+  section: AdminSection;
+  label: string;
+  href: string;
+  icon: (props: IconProps) => React.JSX.Element;
+}[] = [
+  {
+    section: "acreditaciones",
+    label: "Acreditaciones",
+    href: "/admin",
+    icon: IdCardIcon,
+  },
+  {
+    section: "usuarios",
+    label: "Usuarios",
+    href: "/admin/usuarios",
+    icon: UsersIcon,
+  },
+  {
+    section: "multimedia",
+    label: "Multimedia",
+    href: "/admin/multimedia",
+    icon: ImageIcon,
+  },
 ];
 
 export function AdminHeader({
@@ -19,8 +45,8 @@ export function AdminHeader({
   active: AdminSection;
 }) {
   return (
-    <header className="relative z-10 border-b border-border/60 px-5 py-5 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-5xl flex-col gap-4">
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 px-5 py-4 backdrop-blur-md dark:bg-[#070b11]/70 sm:px-8 lg:px-12">
+      <div className="mx-auto flex max-w-5xl flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Image
@@ -28,7 +54,7 @@ export function AdminHeader({
               alt="Sello de la Secretaría de Seguridad y Protección Ciudadana"
               width={120}
               height={120}
-              className="h-11 w-auto"
+              className="h-10 w-auto"
             />
             <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-ink/90">
@@ -40,8 +66,15 @@ export function AdminHeader({
               </h1>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="hidden text-[11px] text-muted sm:inline">
+          <div className="flex items-center gap-2">
+            <Link
+              aria-label="Ir a la galería pública del congreso"
+              className="hidden rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"
+              href="/es/multimedia"
+            >
+              Galería pública
+            </Link>
+            <span className="hidden text-[11px] text-muted md:inline">
               {admin.name}
             </span>
             <AdminLogoutButton />
@@ -51,6 +84,7 @@ export function AdminHeader({
         <nav aria-label="Secciones del panel" className="flex flex-wrap gap-2">
           {NAV_ITEMS.map((item) => {
             const isActive = item.section === active;
+            const Icon = item.icon;
 
             return (
               <Link
@@ -58,11 +92,17 @@ export function AdminHeader({
                 aria-current={isActive ? "page" : undefined}
                 className={
                   isActive
-                    ? "rounded-full bg-accent px-3.5 py-1.5 text-[11px] font-semibold text-accent-foreground"
-                    : "rounded-full border border-border px-3.5 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
+                    ? "inline-flex items-center gap-1.5 rounded-full bg-accent px-3.5 py-1.5 text-[11px] font-semibold text-accent-foreground"
+                    : "inline-flex items-center gap-1.5 rounded-full border border-border px-3.5 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
                 }
                 href={item.href}
               >
+                <Icon
+                  aria-hidden="true"
+                  className={
+                    isActive ? "size-3.5" : "size-3.5 text-muted/70"
+                  }
+                />
                 {item.label}
               </Link>
             );

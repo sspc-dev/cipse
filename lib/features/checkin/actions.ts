@@ -18,7 +18,6 @@ export type CheckinRecordSummary = {
   name: string;
   lastname: string;
   country: string;
-  status: string;
 };
 
 export type CheckinActionResponse =
@@ -86,7 +85,6 @@ export async function registerAttendance(
         name: result.record.name,
         lastname: result.record.lastname,
         country: result.record.country,
-        status: result.record.status,
       },
     };
   } catch (error) {
@@ -142,7 +140,6 @@ export async function lookupAccreditation(
         name: record.name,
         lastname: record.lastname,
         country: record.country,
-        status: record.status,
       },
     };
   } catch (error) {

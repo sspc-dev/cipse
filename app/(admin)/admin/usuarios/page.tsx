@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/features/auth/actions";
 import { listAdminUsers } from "@/lib/features/users/datasource";
 import { CONGRESS_TIME_ZONE } from "@/lib/constants";
+import { UsersIcon } from "@/components/icons";
+import { AdminShell } from "../admin-shell";
 import { AdminHeader } from "../admin-header";
 import { CreateUserForm } from "./create-user-form";
 import { UserRow } from "./user-row";
@@ -22,14 +24,11 @@ const createdAtFormatter = new Intl.DateTimeFormat("es-MX", {
 
 export default function AdminUsersPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-[#070b11]">
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(85%_50%_at_50%_0%,rgba(29,75,68,0.2),transparent_70%)]" />
-        <Suspense fallback={<UsersSkeleton />}>
-          <UsersContent />
-        </Suspense>
-      </div>
-    </main>
+    <AdminShell>
+      <Suspense fallback={<UsersSkeleton />}>
+        <UsersContent />
+      </Suspense>
+    </AdminShell>
   );
 }
 
@@ -71,19 +70,25 @@ async function UsersContent() {
         </section>
 
         <section aria-label="Cuentas registradas" className="flex flex-col gap-3">
-          <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-            Cuentas registradas · {users.length}
+          <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            Cuentas registradas
+            <span className="inline-flex items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
+              {users.length}
+            </span>
           </h2>
 
           {users.length === 0 ? (
             <div
-              className="flex flex-col items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-4 py-8 text-center"
+              className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border/70 bg-background/50 px-4 py-10 text-center dark:bg-white/[0.02]"
               role="status"
             >
+              <span className="flex size-12 items-center justify-center rounded-full border border-border/70 bg-foreground/5 text-muted">
+                <UsersIcon className="size-5" aria-hidden="true" />
+              </span>
               <p className="text-sm font-semibold text-foreground">
                 Sin cuentas registradas
               </p>
-              <p className="max-w-64 text-xs leading-relaxed text-muted">
+              <p className="max-w-72 text-xs leading-relaxed text-muted">
                 Cree la primera cuenta de acreditador con el formulario
                 superior.
               </p>
@@ -104,10 +109,6 @@ async function UsersContent() {
             </ul>
           )}
         </section>
-
-        <footer className="mt-10 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60">
-          Gobierno de México · SSPC — CIPSE XV · Acreditación
-        </footer>
       </div>
     </>
   );

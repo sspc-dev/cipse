@@ -49,6 +49,20 @@ function flagFromCode(code: string): string {
   );
 }
 
+/**
+ * Emoji de bandera si el valor es un código ISO alpha-2 válido; null para
+ * valores legacy guardados con nombre completo.
+ */
+export function countryFlag(value: string): string | null {
+  const code = value.trim();
+
+  if (/^[A-Za-z]{2}$/.test(code)) {
+    return flagFromCode(code.toUpperCase());
+  }
+
+  return null;
+}
+
 function countryName(code: string, tag: "en" | "es"): string {
   try {
     return new Intl.DisplayNames([tag], { type: "region" }).of(code) ?? code;

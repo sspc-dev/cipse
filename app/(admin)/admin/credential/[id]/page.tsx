@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/features/auth/actions";
 import { findAccreditationById } from "@/lib/features/admin/datasource";
-import { labelStatus } from "@/lib/features/checkin/status";
 import { folioLabel } from "@/lib/features/register/credential";
 import { QrVisual } from "@/lib/features/register/components/qr-visual";
 import { PrintCredentialButton } from "../../print-credential-button";
@@ -65,13 +65,13 @@ async function CredentialPrintContent({
   return (
     <main className="flex min-h-screen flex-col items-center gap-6 bg-background px-4 py-10 print:block print:bg-white print:p-0">
       <div className="flex items-center gap-3 print:hidden">
-        <a
+        <Link
           aria-label="Volver al panel de acreditación"
           className="rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-accent"
           href="/admin"
         >
           ← Panel
-        </a>
+        </Link>
         <PrintCredentialButton />
       </div>
 
@@ -106,14 +106,6 @@ async function CredentialPrintContent({
             </dt>
             <dd className="font-mono font-semibold tracking-[0.12em] text-zinc-900">
               {folio}
-            </dd>
-          </div>
-          <div className="flex items-center justify-between gap-3">
-            <dt className="font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              Estado
-            </dt>
-            <dd className="font-semibold text-zinc-900">
-              {labelStatus(accreditation.status)}
             </dd>
           </div>
         </dl>

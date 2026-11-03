@@ -1,6 +1,6 @@
 import type { SVGProps } from "react";
 
-type IconProps = SVGProps<SVGSVGElement>;
+export type IconProps = SVGProps<SVGSVGElement>;
 
 const base: IconProps = {
   "aria-hidden": "true",
@@ -234,6 +234,87 @@ export function UploadIcon(props: IconProps) {
       <path d="M12 20V9" />
       <path d="m7.5 13.5 4.5-4.5 4.5 4.5" />
       <path d="M5 4h14" />
+    </svg>
+  );
+}
+
+export function SearchIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m20 20-3.8-3.8" />
+    </svg>
+  );
+}
+
+export function XIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m6 6 12 12M18 6 6 18" />
+    </svg>
+  );
+}
+
+export function PlusIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
+export function TrashIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7h16" />
+      <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+      <path d="M6.5 7 7.4 19a2 2 0 0 0 2 1.8h5.2a2 2 0 0 0 2-1.8l.9-12" />
+      <path d="M10 11v6M14 11v6" />
+    </svg>
+  );
+}
+
+export function CameraIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 7.5h2.5l1.4-2h8.2l1.4 2H20a1 1 0 0 1 1 1V18a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V8.5a1 1 0 0 1 1-1z" />
+      <circle cx="12" cy="13" r="3.4" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m14 6-6 6 6 6" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="m10 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+export function LogOutIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M9 20H5.5A1.5 1.5 0 0 1 4 18.5v-13A1.5 1.5 0 0 1 5.5 4H9" />
+      <path d="m15 8 4 4-4 4" />
+      <path d="M19 12H10" />
+    </svg>
+  );
+}
+
+export function CalendarIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect height="16" rx="2" width="17" x="3.5" y="5" />
+      <path d="M3.5 10h17" />
+      <path d="M8 2.5V7M16 2.5V7" />
     </svg>
   );
 }

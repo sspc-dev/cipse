@@ -5,8 +5,12 @@ import {
   type CheckinActionResponse,
 } from "@/lib/features/checkin/actions";
 import { AdminLoginForm } from "@/lib/features/auth/components/admin-login-form";
-import { labelStatus } from "@/lib/features/checkin/status";
-import { AlertCircleIcon, CheckIcon, ClockIcon } from "@/components/icons";
+import {
+  AlertCircleIcon,
+  CameraIcon,
+  CheckIcon,
+  ClockIcon,
+} from "@/components/icons";
 import { Button } from "@heroui/react";
 import jsQR from "jsqr";
 import { useRouter } from "next/navigation";
@@ -145,9 +149,6 @@ export function ScannerPanel() {
   }
 
   const registered = outcome?.result;
-  const isApproved = registered?.ok
-    ? registered.record.status === "APPROVED"
-    : false;
   const sessionExpired =
     registered?.ok === false && registered.code === "SESSION_REQUIRED";
 
@@ -165,7 +166,14 @@ export function ScannerPanel() {
 
         {cameraState === "scanning" ? (
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-x-10 top-1/2 h-64 -translate-y-1/2 rounded-2xl border-2 border-white/60" />
+            <div className="absolute inset-6 sm:inset-10">
+              <span className="scanner-corner left-0 top-0" />
+              <span className="scanner-corner right-0 top-0 rotate-90" />
+              <span className="scanner-corner bottom-0 right-0 rotate-180" />
+              <span className="scanner-corner bottom-0 left-0 -rotate-90" />
+            </div>
+            <div className="absolute inset-y-8 left-1/2 hidden w-px bg-linear-to-b from-transparent via-white/40 to-transparent sm:block" />
+            <div className="scanner-sweep absolute inset-x-8 top-1/2 h-0.5 rounded-full bg-gold/80 shadow-[0_0_18px_rgba(197,155,39,0.55)] sm:inset-x-12" />
           </div>
         ) : null}
 
@@ -189,7 +197,19 @@ export function ScannerPanel() {
                 </Button>
               </div>
             ) : (
-              <div className="flex flex-col items-center gap-3">
+              <div className="flex flex-col items-center gap-4">
+                <div
+                  aria-hidden="true"
+                  className="relative size-28"
+                >
+                  <span className="scanner-corner left-0 top-0" />
+                  <span className="scanner-corner rotate-90 right-0 top-0" />
+                  <span className="scanner-corner rotate-180 bottom-0 right-0" />
+                  <span className="scanner-corner -rotate-90 bottom-0 left-0" />
+                  <span className="absolute inset-0 grid place-items-center text-white/85">
+                    <CameraIcon className="size-8" aria-hidden="true" />
+                  </span>
+                </div>
                 <p className="max-w-xs text-xs leading-relaxed text-white/85">
                   Escanee la credencial QR del delegado: la asistencia se
                   registra automáticamente.
@@ -210,7 +230,7 @@ export function ScannerPanel() {
 
       {cameraState === "scanning" ? (
         <p className="flex items-center justify-center gap-2 text-[11px] text-muted">
-          <span className="size-1.5 animate-pulse rounded-full bg-tactical-bright" />
+          <span className="size-1.5 animate-pulse rounded-full bg-gold" />
           Apunte al código de la credencial y manténgalo estable
         </p>
       ) : null}
@@ -254,7 +274,6 @@ export function ScannerPanel() {
                   </span>
                   <span className="font-mono text-xs font-semibold tracking-[0.08em] text-gold-ink">
                     {registered.record.folio} ·{" "}
-                    {labelStatus(registered.record.status)} ·{" "}
                     Día {registered.attendanceDays} de asistencia
                   </span>
                 </div>
@@ -275,22 +294,11 @@ export function ScannerPanel() {
                   </span>
                   <span className="font-mono text-xs font-semibold tracking-[0.08em] text-gold-ink">
                     {registered.record.folio} ·{" "}
-                    {labelStatus(registered.record.status)} ·{" "}
                     Día {registered.attendanceDays} de asistencia
                   </span>
                 </div>
               </div>
             )}
-
-            {!isApproved ? (
-              <p
-                className="flex items-start gap-2.5 rounded-xl border border-gold/25 bg-gold/10 px-3.5 py-3 text-xs leading-relaxed text-gold-ink"
-                role="warning"
-              >
-                <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
-                La acreditación no está aprobada. Confirme con el responsable.
-              </p>
-            ) : null}
 
             <Button
               className="h-11 rounded-full text-sm font-semibold"

@@ -13,6 +13,8 @@ import { isMediaStorageConfigured } from "@/lib/features/media/storage";
 import type { MediaItem } from "@/lib/features/media/types";
 import { CONGRESS_TIME_ZONE } from "@/lib/constants";
 import { FileTextIcon, ImageIcon, VideoIcon } from "@/components/icons";
+import Link from "next/link";
+import { AdminShell } from "../admin-shell";
 import { AdminHeader } from "../admin-header";
 import { MediaDeleteButton } from "./media-delete-button";
 import { UploadMediaForm } from "./upload-media-form";
@@ -31,14 +33,11 @@ const dateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
 
 export default function AdminMediaPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground dark:bg-[#070b11]">
-      <div className="relative">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(85%_50%_at_50%_0%,rgba(29,75,68,0.2),transparent_70%)]" />
-        <Suspense fallback={<MediaSkeleton />}>
-          <MediaContent />
-        </Suspense>
-      </div>
-    </main>
+    <AdminShell>
+      <Suspense fallback={<MediaSkeleton />}>
+        <MediaContent />
+      </Suspense>
+    </AdminShell>
   );
 }
 
@@ -60,7 +59,7 @@ function KindIcon({ kind }: { kind: MediaItem["kind"] }) {
 
 function MediaAdminItem({ item }: { item: MediaItem }) {
   return (
-    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 transition-colors hover:border-accent/50 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-center gap-3">
         {item.kind === "image" ? (
           /* Archivo servido por route handler; no pasa por optimización. */
@@ -68,12 +67,12 @@ function MediaAdminItem({ item }: { item: MediaItem }) {
           <img
             alt=""
             aria-hidden="true"
-            className="size-12 shrink-0 rounded-lg border border-border object-cover"
+            className="size-14 shrink-0 rounded-lg border border-border object-cover"
             loading="lazy"
             src={mediaFileUrl(item.id)}
           />
         ) : (
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/5 text-muted">
+          <span className="flex size-14 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/5 text-muted">
             <KindIcon kind={item.kind} />
           </span>
         )}
@@ -94,7 +93,7 @@ function MediaAdminItem({ item }: { item: MediaItem }) {
 
       <div className="flex flex-wrap items-center gap-2">
         <a
-          className="rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground"
           href={mediaFileUrl(item.id)}
           rel="noreferrer"
           target="_blank"
@@ -129,9 +128,9 @@ async function MediaContent() {
             </h2>
             <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               El material publicado aparece en la galería pública{" "}
-              <a className="font-semibold text-accent-soft-foreground underline-offset-2 hover:underline" href="/multimedia">
-                /multimedia
-              </a>
+              <Link className="font-semibold text-accent-soft-foreground underline-offset-2 hover:underline" href="/es/multimedia">
+                /es/multimedia
+              </Link>
               , organizado por día.
             </p>
           </div>
@@ -144,14 +143,18 @@ async function MediaContent() {
 
             return (
               <div key={day.value} className="flex flex-col gap-3">
-                <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-                  {day.label} · {items.length} archivo
-                  {items.length === 1 ? "" : "s"}
+                <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+                  {day.label}
+                  <span className="inline-flex items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
+                    {items.length}
+                  </span>
                 </h2>
 
                 {items.length === 0 ? (
                   <p className="rounded-xl border border-dashed border-border/70 px-4 py-6 text-center text-xs text-muted">
                     Sin material publicado para {day.label.toLowerCase()}.
+                    Seleccione este día en el formulario superior para
+                    publicarlo.
                   </p>
                 ) : (
                   <ul className="flex flex-col gap-2">
@@ -164,10 +167,6 @@ async function MediaContent() {
             );
           })}
         </section>
-
-        <footer className="mt-10 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60">
-          Gobierno de México · SSPC — CIPSE XV · Multimedia
-        </footer>
       </div>
     </>
   );

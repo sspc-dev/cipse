@@ -1,0 +1,80 @@
+# CIPSE XV — stack de producción detrás del Traefik ya en marcha en el host.
+#
+# - app:  imagen construida desde el Dockerfile del repo (servidor completo
+#         `next start` para conservar el proxy de idioma).
+# - db:   mysql:8.4 con volumen dedicado; db/sql inicializa volúmenes nuevos.
+# - red traefik: externa, compartida con el proxy del host (nombre ajustable
+#   con TRAEFIK_NETWORK; por defecto "traefik").
+#
+# Router sin dominio: PathPrefix(/) sobre el entrypoint web (acceso por IP).
+#
+# Fuente única de configuración: el .env de la raíz del repo alimenta la app
+# (env_file) y la base de datos (env_file + valores por defecto seguros).
+#
+# Uso:
+#   docker compose -f deploy/docker-compose.yml up -d --build
+#
+# Alta del primer acreditador (credenciales desde el env del contenedor):
+#   docker compose -f deploy/docker-compose.yml run --rm app \
+#     node scripts/create-admin.mjs
+#
+# Volumen ya inicializado con versiones anteriores: ejecutar a mano la
+# migración idempotente:
+#   docker exec -i NOMBRE_MYSQL mysql -u<user> -p<pass> <db> \
+#     < db/sql/006_drop_accreditation_status.sql
+
+name: cipse
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      MYSQL_HOST: db
+      MYSQL_PORT: "3306"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+      - traefik
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.cipse.rule=PathPrefix(`/`)
+      - traefik.http.routers.cipse.entrypoints=web
+      - traefik.http.routers.cipse.priority=1
+      - traefik.http.services.cipse.loadbalancer.server.port=3000
+
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      # Respaldo si el .env no define la clave del root (dev usa cipse_root).
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-cipse_root}
+    volumes:
+      - mysql_prod_data:/var/lib/mysql
+      - ../db/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p\"$$MYSQL_ROOT_PASSWORD\""]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+    networks:
+      - internal
+
+volumes:
+  mysql_prod_data:
+
+networks:
+  internal:
+    driver: bridge
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK:-traefik}

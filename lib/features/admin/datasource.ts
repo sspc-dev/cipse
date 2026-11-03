@@ -9,7 +9,6 @@ export type AccreditationListRow = {
   lastname: string;
   country: string;
   email: string;
-  status: string;
   accessCode: string;
   createdAt: Date;
   attendanceDays: number;
@@ -23,7 +22,6 @@ type AccreditationListRowPacket = RowDataPacket & {
   lastname: string;
   country: string;
   email: string;
-  status: string;
   access_code: string;
   created_at: Date;
   attendance_days: number;
@@ -38,7 +36,6 @@ function mapRow(row: AccreditationListRowPacket): AccreditationListRow {
     lastname: row.lastname,
     country: row.country,
     email: row.email,
-    status: row.status,
     accessCode: row.access_code,
     createdAt: row.created_at,
     attendanceDays: Number(row.attendance_days ?? 0),
@@ -66,20 +63,78 @@ function buildSearchFilter(search: string): {
   };
 }
 
+export function buildCountryFilter(country: string): {
+  condition: string;
+  params: string[];
+} {
+  return { condition: "country = ?", params: [country] };
+}
+
+/**
+ * Filtros de asistencia sobre `attendance_records`, único estado vivo del
+ * delegado una vez eliminado el campo status.
+ */
+export type AttendanceFilterKind = "today" | "never";
+
+export function buildAttendanceFilter(kind: AttendanceFilterKind): {
+  condition: string;
+  params: string[];
+} {
+  if (kind === "today") {
+    return {
+      condition: `EXISTS (
+        SELECT 1 FROM attendance_records t
+        WHERE t.accreditation_id = accreditations.id
+          AND t.attended_on = CURDATE()
+      )`,
+      params: [],
+    };
+  }
+
+  return {
+    condition: `NOT EXISTS (
+      SELECT 1 FROM attendance_records t
+      WHERE t.accreditation_id = accreditations.id
+    )`,
+    params: [],
+  };
+}
+
+function combineFilters(
+  parts: ({ condition: string; params: string[] } | null)[],
+): {
+  whereClause: string;
+  whereParams: string[];
+} {
+  const active = parts.filter(
+    (part): part is { condition: string; params: string[] } => part !== null,
+  );
+
+  return {
+    whereClause:
+      active.length > 0
+        ? `WHERE ${active.map((part) => part.condition).join(" AND ")}`
+        : "",
+    whereParams: active.flatMap((part) => part.params),
+  };
+}
+
 export async function listAccreditations(
   query: AdminListQuery,
 ): Promise<{ rows: AccreditationListRow[]; total: number }> {
   const offset = (query.page - 1) * query.pageSize;
   const search = query.search;
-  const searchFilter = search ? buildSearchFilter(search) : null;
+  const country = query.country;
+  const attendance = query.attendance;
+  const combined = combineFilters([
+    search ? buildSearchFilter(search) : null,
+    country ? buildCountryFilter(country) : null,
+    attendance ? buildAttendanceFilter(attendance) : null,
+  ]);
 
   const result = await withConnection(async (connection) => {
-    const whereClause = searchFilter
-      ? `WHERE ${searchFilter.condition}`
-      : "";
-    const whereParams = searchFilter ? searchFilter.params : [];
     const [rows] = await connection.query<AccreditationListRowPacket[]>(
-      `SELECT a.id, a.name, a.lastname, a.country, a.email, a.status, a.access_code,
+      `SELECT a.id, a.name, a.lastname, a.country, a.email, a.access_code,
               a.created_at,
               COUNT(r.id) AS attendance_days,
               EXISTS (
@@ -89,19 +144,17 @@ export async function listAccreditations(
               MAX(r.attended_at) AS last_attendance_at
        FROM accreditations a
        LEFT JOIN attendance_records r ON r.accreditation_id = a.id
-       ${whereClause}
-       GROUP BY a.id, a.name, a.lastname, a.country, a.email, a.status,
+       ${combined.whereClause}
+       GROUP BY a.id, a.name, a.lastname, a.country, a.email,
                 a.access_code, a.created_at
        ORDER BY a.created_at DESC, a.id DESC
        LIMIT ? OFFSET ?`,
-      [...whereParams, query.pageSize, offset],
+      [...combined.whereParams, query.pageSize, offset],
     );
 
     const [countRows] = await connection.query<RowDataPacket[]>(
-      `SELECT COUNT(*) AS total FROM accreditations ${
-        searchFilter ? `WHERE ${searchFilter.condition}` : ""
-      }`,
-      whereParams,
+      `SELECT COUNT(*) AS total FROM accreditations ${combined.whereClause}`,
+      combined.whereParams,
     );
 
     const total = Number(countRows[0]?.total ?? 0);
@@ -117,7 +170,6 @@ export type AccreditationCredentials = {
   name: string;
   lastname: string;
   email: string;
-  status: string;
   accessCode: string;
 };
 
@@ -135,11 +187,10 @@ export async function findAccreditationById(
         name: string;
         lastname: string;
         email: string;
-        status: string;
         access_code: string;
       })[]
     >(
-      `SELECT id, name, lastname, email, status, access_code
+      `SELECT id, name, lastname, email, access_code
        FROM accreditations
        WHERE id = ?`,
       [id],
@@ -155,44 +206,98 @@ export async function findAccreditationById(
     name: record.name,
     lastname: record.lastname,
     email: record.email,
-    status: record.status,
     accessCode: record.access_code,
   };
 }
 
 export type AccreditationStats = {
   total: number;
-  approved: number;
-  pending: number;
   checkedInToday: number;
+  /** Altas de los últimos 7 días calendario. */
+  newLast7Days: number;
+  /** Acreditados que nunca han registrado asistencia. */
+  withoutAttendance: number;
 };
 
 export async function getStats(): Promise<AccreditationStats> {
   return await withConnection(async (connection) => {
     const [rows] = await connection.query<RowDataPacket[]>(
       `SELECT
-         COUNT(*)                                    AS total,
-         SUM(status = 'APPROVED')                    AS approved,
-         SUM(status = 'PENDING')                     AS pending,
+         (SELECT COUNT(*)
+          FROM accreditations)                         AS total,
          (SELECT COUNT(*)
           FROM attendance_records
-          WHERE attended_on = CURDATE())             AS checkedInToday
-       FROM accreditations`,
+          WHERE attended_on = CURDATE())               AS checkedInToday,
+         (SELECT COUNT(*)
+          FROM accreditations n
+          WHERE n.created_at >= CURDATE() - INTERVAL 7 DAY)  AS newLast7Days,
+         (SELECT COUNT(*)
+          FROM accreditations n
+          WHERE NOT EXISTS (
+            SELECT 1 FROM attendance_records t
+            WHERE t.accreditation_id = n.id
+          ))                                           AS withoutAttendance`,
     );
 
     const row = rows[0] as Record<string, string | number | null> | undefined;
 
     if (!row) {
-      return { total: 0, approved: 0, pending: 0, checkedInToday: 0 };
+      return {
+        total: 0,
+        checkedInToday: 0,
+        newLast7Days: 0,
+        withoutAttendance: 0,
+      };
     }
 
     return {
       total: Number(row["total"] ?? 0),
-      approved: Number(row["approved"] ?? 0),
-      pending: Number(row["pending"] ?? 0),
       checkedInToday: Number(row["checkedInToday"] ?? 0),
+      newLast7Days: Number(row["newLast7Days"] ?? 0),
+      withoutAttendance: Number(row["withoutAttendance"] ?? 0),
     };
   });
+}
+
+export type RegistrationsByCountry = {
+  /** Valor almacenado: código ISO alpha-2 o nombre legacy. */
+  country: string;
+  total: number;
+  attended: number;
+};
+
+/**
+ * Distribución de acreditaciones por país: los valores se agrupan por la
+ * columna tal cual está almacenada, de modo que la consulta no distingue
+ * entre códigos ISO y nombres legacy. `attended` cuenta países con al menos
+ * un día de asistencia registrado.
+ */
+export async function getRegistrationsByCountry(
+  limit = 6,
+): Promise<RegistrationsByCountry[]> {
+  const rows = await withConnection(async (connection) => {
+    const [result] = await connection.query<RowDataPacket[]>(
+      `SELECT country,
+              COUNT(*) AS total,
+              SUM(EXISTS (
+                SELECT 1 FROM attendance_records t
+                WHERE t.accreditation_id = accreditations.id
+              )) AS attended
+       FROM accreditations
+       GROUP BY country
+       ORDER BY total DESC, country ASC
+       LIMIT ?`,
+      [limit],
+    );
+
+    return result as { country: string; total: number; attended: number }[];
+  });
+
+  return rows.map((row) => ({
+    country: row.country,
+    total: Number(row["total"] ?? 0),
+    attended: Number(row["attended"] ?? 0),
+  }));
 }
 
 export type AttendanceByDay = {

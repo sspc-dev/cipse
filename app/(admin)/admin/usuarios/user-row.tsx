@@ -18,6 +18,20 @@ const actionButtonClass =
 
 type Mode = "idle" | "edit" | "password";
 
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1]?.[0] ?? "" : "";
+  return (first + last).toUpperCase() || "?";
+}
+
+/** Tono alterna por cuenta para distinguir filas por simple vistazo. */
+const AVATAR_TONES = [
+  "border-tactical/40 bg-tactical/15 text-accent-soft-foreground",
+  "border-gold/35 bg-gold/10 text-gold-ink",
+  "border-border bg-foreground/5 text-muted",
+] as const;
+
 export function UserRow({
   id,
   name,
@@ -111,32 +125,46 @@ export function UserRow({
   }
 
   return (
-    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5">
+    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 transition-colors hover:border-accent/50">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-semibold text-foreground">
-              {name}
-            </p>
-            <span
-              className={
-                isActive
-                  ? "inline-flex items-center rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
-                  : "inline-flex items-center rounded-full border border-danger/30 bg-danger/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-danger"
-              }
-            >
-              {isActive ? "Activo" : "Inactivo"}
-            </span>
-            {isCurrentUser ? (
-              <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink">
-                Su cuenta
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden="true"
+            className={`flex size-11 shrink-0 items-center justify-center rounded-full border font-display text-sm font-bold tracking-tight ${
+              AVATAR_TONES[id % AVATAR_TONES.length]
+            }`}
+          >
+            {initials(name)}
+          </span>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="truncate text-sm font-semibold text-foreground">
+                {name}
+              </p>
+              <span
+                className={
+                  isActive
+                    ? "inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
+                    : "inline-flex items-center gap-1.5 rounded-full border border-danger/30 bg-danger/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-danger"
+                }
+              >
+                <span
+                  aria-hidden="true"
+                  className="size-1.5 rounded-full bg-current"
+                />
+                {isActive ? "Activo" : "Inactivo"}
               </span>
-            ) : null}
+              {isCurrentUser ? (
+                <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink">
+                  Su cuenta
+                </span>
+              ) : null}
+            </div>
+            <p className="truncate text-xs text-muted">{email}</p>
+            <p className="text-[10px] uppercase tracking-[0.12em] text-muted/70">
+              Alta: {createdAtLabel}
+            </p>
           </div>
-          <p className="truncate text-xs text-muted">{email}</p>
-          <p className="text-[10px] uppercase tracking-[0.12em] text-muted/70">
-            Alta: {createdAtLabel}
-          </p>
         </div>
 
         {mode === "idle" ? (

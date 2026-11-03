@@ -25,11 +25,6 @@ export const es = {
     checkinDescription:
       "Verificación de credenciales y registro de asistencia para el personal acreditado del CIPSE XV.",
   },
-  status: {
-    PENDING: "Pendiente de revisión",
-    APPROVED: "Aprobada",
-    REJECTED: "Rechazada",
-  },
   register: {
     sealAlt: "Sello de la Secretaría de Seguridad y Protección Ciudadana",
     coverAlt: "Elementos de la SSPC en despliegue operativo",
@@ -78,8 +73,6 @@ export const es = {
       description:
         "Presente este código de acceso el día del congreso. Guardarlo es suficiente para acreditar su ingreso.",
       delegate: "Delegado",
-      status: "Estado",
-      pending: "pendiente de revisión",
       email: "Correo",
       emailSent: "Credencial enviada a su correo",
       emailNotSent: "Sin envío: guarde o descargue su QR aquí",
@@ -124,12 +117,9 @@ export const es = {
       "El código escaneado no corresponde a una acreditación válida.",
     scanPrompt:
       "Escaneé la credencial QR del delegado o ingrese su código manualmente.",
-    notApproved:
-      "La acreditación no está aprobada. Confirme con el responsable antes de registrar la asistencia.",
     folio: "Folio",
     delegate: "Delegado",
     country: "País",
-    status: "Estado",
     alreadyToday: "Ya fue registrada hoy{time}",
     registeredToday: "Asistencia del día registrada{time}",
     timeSuffix: " a las {time}",

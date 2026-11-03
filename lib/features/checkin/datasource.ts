@@ -11,7 +11,6 @@ export type AccreditationRecord = {
   lastname: string;
   country: string;
   email: string;
-  status: string;
   checkedInAt: Date | null;
   checkedInBy: string | null;
 };
@@ -22,7 +21,6 @@ type AccreditationRow = RowDataPacket & {
   lastname: string;
   country: string;
   email: string;
-  status: string;
   checked_in_at: Date | null;
   checked_in_by: string | null;
 };
@@ -38,7 +36,7 @@ function mapRow(row: AccreditationRow): AccreditationRecord {
     lastname: row.lastname,
     country: row.country,
     email: row.email,
-    status: row.status,
+
     checkedInAt: row.checked_in_at,
     checkedInBy: row.checked_in_by,
   };
@@ -49,7 +47,7 @@ export async function findAccreditationByCode(
 ): Promise<AccreditationRecord | null> {
   const record = await withConnection(async (connection) => {
     const [rows] = await connection.query<AccreditationRow[]>(
-      `SELECT id, name, lastname, country, email, status,
+      `SELECT id, name, lastname, country, email,
               checked_in_at, checked_in_by
        FROM accreditations
        WHERE access_code = ?`,
@@ -81,7 +79,7 @@ export async function registerAttendanceByDay(
 ): Promise<AttendanceDayResult | null> {
   return await withConnection(async (connection) => {
     const [baseRows] = await connection.query<AccreditationRow[]>(
-      `SELECT id, name, lastname, country, email, status,
+      `SELECT id, name, lastname, country, email,
               checked_in_at, checked_in_by
        FROM accreditations
        WHERE access_code = ?`,

@@ -274,13 +274,63 @@ body {
   animation: ken-burns 22s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
+/* Deriva ambiental del panel: torbellinos de color casi imperceptibles */
+@keyframes ambient-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(4%, -3%, 0) scale(1.08);
+  }
+}
+
+.ambient-drift {
+  animation: ambient-drift 80s ease-in-out infinite;
+}
+
+.ambient-drift-slow {
+  animation: ambient-drift 110s ease-in-out infinite reverse;
+}
+
+/* Línea de barrido del escáner de credenciales */
+@keyframes scanner-sweep {
+  0%,
+  100% {
+    transform: translateY(-46%);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(46%);
+    opacity: 0.55;
+  }
+}
+
+.scanner-sweep {
+  animation: scanner-sweep 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Esquinas de encuadre para el visor del escáner (doradas, institucional) */
+.scanner-corner {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  border: 0 solid rgba(197, 155, 39, 0.95);
+  border-top-width: 2.5px;
+  border-left-width: 2.5px;
+  border-radius: 6px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .card-enter,
   .reveal,
   .pop-in,
   .check-pop,
   .strip-shine::after,
-  .ken-burns {
+  .ken-burns,
+  .ambient-drift,
+  .ambient-drift-slow,
+  .scanner-sweep {
     animation: none;
   }
 }

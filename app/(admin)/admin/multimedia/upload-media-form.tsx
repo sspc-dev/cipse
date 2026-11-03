@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { MULTIMEDIA_DAYS } from "@/lib/features/media/days";
 import { formatMediaSize } from "@/lib/features/media/format";
 import { MAX_MEDIA_BYTES } from "@/lib/features/media/types";
+import { UploadIcon } from "@/components/icons";
 
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80";
@@ -28,6 +29,7 @@ export function UploadMediaForm({
   const [day, setDay] = useState<Key | null>("1");
   const [title, setTitle] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
 
@@ -149,18 +151,51 @@ export function UploadMediaForm({
         <label className={labelClass} htmlFor="media-file">
           Archivo
         </label>
-        <input
-          accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
-          className="block w-full cursor-pointer rounded-xl border border-field-border bg-field-background px-3 py-2.5 text-xs text-field-foreground file:mr-3 file:rounded-full file:border-0 file:bg-accent file:px-3 file:py-1.5 file:text-[11px] file:font-semibold file:text-accent-foreground"
-          id="media-file"
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-          type="file"
-        />
-        <p className="text-[11px] text-muted">
-          {file
-            ? `${file.name} · ${formatMediaSize(file.size)}`
-            : `Máximo ${Math.round(MAX_MEDIA_BYTES / (1024 * 1024))} MB por archivo.`}
-        </p>
+        <label
+          className={`relative flex cursor-pointer flex-col items-center gap-2 rounded-xl border border-dashed px-4 py-6 text-center transition-colors ${
+            dragOver
+              ? "border-accent bg-accent-soft/50"
+              : "border-field-border hover:border-field-border-hover"
+          }`}
+          onDragLeave={() => setDragOver(false)}
+          onDragOver={(event) => {
+            event.preventDefault();
+            setDragOver(true);
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            setDragOver(false);
+            const dropped = event.dataTransfer.files?.[0];
+            if (dropped) {
+              setFile(dropped);
+            }
+            const input = document.getElementById("media-file");
+            if (dropped && input instanceof HTMLInputElement) {
+              input.value = "";
+            }
+          }}
+        >
+          <UploadIcon
+            aria-hidden="true"
+            className={`size-5 ${dragOver ? "text-accent-soft-foreground" : "text-muted"}`}
+          />
+          <span className="text-xs font-semibold text-foreground">
+            {file
+              ? `${file.name} · ${formatMediaSize(file.size)}`
+              : "Arrastre un archivo o haga clic para seleccionar"}
+          </span>
+          <span className="text-[10px] text-muted">
+            Imágenes, videos o documentos · máx.{" "}
+            {Math.round(MAX_MEDIA_BYTES / (1024 * 1024))} MB
+          </span>
+          <input
+            accept="image/*,video/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt"
+            className="absolute inset-0 size-full cursor-pointer opacity-0"
+            id="media-file"
+            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            type="file"
+          />
+        </label>
       </div>
 
       {error ? (
@@ -183,6 +218,7 @@ export function UploadMediaForm({
           type="submit"
           variant="primary"
         >
+          <UploadIcon className="size-4" aria-hidden="true" />
           Publicar archivo
         </Button>
       </div>

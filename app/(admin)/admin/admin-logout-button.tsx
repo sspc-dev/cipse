@@ -4,6 +4,7 @@ import { logoutAdmin } from "@/lib/features/auth/actions";
 import { Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { LogOutIcon } from "@/components/icons";
 
 export function AdminLogoutButton() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export function AdminLogoutButton() {
       onPress={() => void logout()}
       variant="ghost"
     >
+      <LogOutIcon className="size-3.5" aria-hidden="true" />
       Salir
     </Button>
   );

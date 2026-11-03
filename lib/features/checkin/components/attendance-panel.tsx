@@ -39,19 +39,6 @@ function formatCheckinTime(iso: string, locale: Locale): string {
 const detailLabelClass =
   "text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70";
 
-function statusChipClass(status: string): string {
-  return status === "APPROVED"
-    ? "inline-flex items-center rounded-full border border-accent/30 bg-accent-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
-    : "inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink";
-}
-
-function statusLabelFor(status: string, dictionary: Dictionary): string {
-  if (status === "PENDING") return dictionary.status.PENDING;
-  if (status === "APPROVED") return dictionary.status.APPROVED;
-  if (status === "REJECTED") return dictionary.status.REJECTED;
-  return status;
-}
-
 export function AttendancePanel({
   accessCode,
   adminSessionValid,
@@ -76,8 +63,6 @@ export function AttendancePanel({
   );
   const [isPending, setIsPending] = useState(false);
 
-  const isApproved = delegado.status === "APPROVED";
-  const statusLabel = statusLabelFor(delegado.status, dictionary);
   const attendedAt = result?.ok ? result.attendedAt : "";
 
   async function submitAttendance() {
@@ -110,21 +95,7 @@ export function AttendancePanel({
             {countryDisplayName(delegado.country, locale)}
           </dd>
         </div>
-        <div className="flex items-center justify-between gap-3">
-          <dt className={detailLabelClass}>{copy.status}</dt>
-          <dd className={statusChipClass(delegado.status)}>{statusLabel}</dd>
-        </div>
       </dl>
-
-      {!isApproved ? (
-        <p
-          className="flex items-start gap-2.5 rounded-xl border border-gold/25 bg-gold/10 px-3.5 py-3 text-xs leading-relaxed text-gold-ink"
-          role="warning"
-        >
-          <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
-          {copy.notApproved}
-        </p>
-      ) : null}
 
       {!sessionValid ? (
         <AdminLoginForm onSuccess={() => setSessionValid(true)} />
