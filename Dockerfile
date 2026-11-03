@@ -51,7 +51,9 @@ ENV HOSTNAME=0.0.0.0
 RUN addgroup -S cipse && adduser -S cipse -G cipse
 
 COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/.next ./.next
+# .next necesita permisos de escritura para cipse: el optimizador de imágenes
+# escribe su caché en .next/cache/images durante el runtime.
+COPY --from=build --chown=cipse:cipse /app/.next ./.next
 COPY --from=build /app/public ./public
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/package.json ./package.json
@@ -60,6 +62,10 @@ COPY --from=build /app/next.config.ts ./next.config.ts
 # El proxy de idioma se carga desde el código fuente en el arranque del
 # servidor completo de esta versión de Next.js.
 COPY --from=build /app/proxy.ts ./proxy.ts
+
+# El directorio de caché de imágenes debe existir y ser escribible por el
+# proceso del servidor antes de cambiar al usuario sin privilegios.
+RUN mkdir -p .next/cache/images && chown -R cipse:cipse .next/cache
 
 USER cipse
 

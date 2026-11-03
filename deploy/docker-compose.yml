@@ -42,7 +42,7 @@ services:
       - --entryPoints.web.address=:80
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
-      - --providers.docker.network=cipse_internal
+      - --providers.docker.network=cipse-prod_internal
       # Dashboard desactivado; si se desea en :8080 añadir
       # --api.dashboard=true + --entryPoints.traefik.address=:8080 y publicarlo.
       - --api=false
@@ -83,6 +83,10 @@ services:
       - internal
     labels:
       - traefik.enable=true
+      # Red desde la que Traefik debe tomar la IP del app. Con el proyecto
+      # "cipse-prod" la red del stack se llama cipse-prod_internal; declararlo
+      # también aquí evita el 504 clásico de IP de red equivocada.
+      - traefik.docker.network=cipse-prod_internal
       - traefik.http.routers.cipse.rule=PathPrefix(`/`)
       - traefik.http.routers.cipse.entrypoints=web
       - traefik.http.routers.cipse.priority=1
