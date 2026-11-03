@@ -1,12 +1,13 @@
-# CIPSE XV — stack de producción detrás del Traefik ya en marcha en el host.
+# CIPSE XV — stack de producción con Traefik incluido.
 #
-# - app:  imagen construida desde el Dockerfile del repo (servidor completo
-#         `next start` para conservar el proxy de idioma).
-# - db:   mysql:8.4 con volumen dedicado; db/sql inicializa volúmenes nuevos.
-# - red traefik: externa, compartida con el proxy del host (nombre ajustable
-#   con TRAEFIK_NETWORK; por defecto "traefik").
+# - traefik: proxy del stack; publica HTTP :80 en el host y registra el app
+#   vía provider docker (labels). Sin TLS/dominio: acceso por IP.
+# - app:     imagen construida desde el Dockerfile del repo (servidor
+#   completo `next start` para conservar el proxy de idioma).
+# - db:      mysql:8.4 con volumen dedicado; db/sql inicializa volúmenes
+#   nuevos.
 #
-# Router sin dominio: PathPrefix(/) sobre el entrypoint web (acceso por IP).
+# Router sin dominio: PathPrefix(/) sobre el entrypoint web (:80).
 #
 # Fuente única de configuración: el .env de la raíz del repo alimenta la app
 # (env_file) y la base de datos (env_file + valores por defecto seguros).
@@ -22,10 +23,49 @@
 # migración idempotente:
 #   docker exec -i NOMBRE_MYSQL mysql -u<user> -p<pass> <db> \
 #     < db/sql/006_drop_accreditation_status.sql
+#
+# name: cipse-prod para que nunca colisione con el proyecto de desarrollo
+# (docker compose de la raíz, proyecto "cipse"): un down del stack prod no
+# toca contenedores ni volúmenes del entorno dev.
+#
+# Si el host ya tiene otro servicio en :80 (p. ej. un Traefik propio), no
+# publicar el puerto aquí: se accede por la IP con otro puerto o se integra
+# la app al proxy del host vía red compartida.
 
-name: cipse
+name: cipse-prod
 
 services:
+  traefik:
+    image: traefik:latest  # v3.7.17: cliente docker negociable con daemons recientes
+    restart: unless-stopped
+    command:
+      - --entryPoints.web.address=:80
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=cipse_internal
+      # Dashboard desactivado; si se desea en :8080 añadir
+      # --api.dashboard=true + --entryPoints.traefik.address=:8080 y publicarlo.
+      - --api=false
+      - --ping=true
+    ports:
+      # Puerto público del stack; en servidores limpios queda 80 por defecto.
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+    volumes:
+      # El provider docker necesita leer el socket (sin escritura).
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik_data:/etc/traefik
+    environment:
+      # Daemons recientes (p. ej. Docker 29) exigen API >= 1.44; el cliente
+      # docker de Traefik negocia 1.24 por defecto.
+      DOCKER_API_VERSION: "1.44"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - internal
+
   app:
     build:
       context: ..
@@ -41,7 +81,6 @@ services:
         condition: service_healthy
     networks:
       - internal
-      - traefik
     labels:
       - traefik.enable=true
       - traefik.http.routers.cipse.rule=PathPrefix(`/`)
@@ -71,10 +110,8 @@ services:
 
 volumes:
   mysql_prod_data:
+  traefik_data:
 
 networks:
   internal:
     driver: bridge
-  traefik:
-    external: true
-    name: ${TRAEFIK_NETWORK:-traefik}
