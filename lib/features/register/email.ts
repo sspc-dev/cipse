@@ -5,6 +5,8 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import nodemailer, { type Transporter } from "nodemailer";
+import { formatMessage } from "@/lib/i18n/format";
+import { getDictionary, type Dictionary, type Locale } from "@/lib/i18n";
 import { generateCredentialQrPng } from "./qr";
 
 export type EmailDelivery =
@@ -18,6 +20,7 @@ type CredentialEmailInput = {
   fullName: string;
   accessCode: string;
   origin: string;
+  locale: Locale;
 };
 
 let transporterPromise: Promise<Transporter> | null = null;
@@ -46,17 +49,46 @@ function getTransporter(): Promise<Transporter> | null {
   return transporterPromise;
 }
 
-function credentialHtml(input: CredentialEmailInput): string {
+function credentialHtml(
+  input: CredentialEmailInput,
+  copy: Dictionary["email"],
+): string {
   const { folio, fullName, origin } = input;
 
   return [
     '<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px">',
     `<p style="color:#6b7280;font-size:12px;letter-spacing:.08em;">CIPSE XV · MÉXICO 2026</p>`,
-    `<h2 style="color:#10181d;margin:0 0 12px;">Credencial de acceso</h2>`,
-    `<p style="color:#374151;font-size:14px;">Hola, <strong>${escapeHtml(fullName)}</strong>. Su solicitud quedó registrada con folio <strong style="font-family:monospace;">${escapeHtml(folio)}</strong>.</p>`,
-    `<p style="color:#374151;font-size:14px;">Presente este código QR en el acceso del congreso. También encontrará la imagen adjunta para guardar o imprimir.</p>`,
-    `<img width="240" height="240" src="cid:credential-qr" alt="Código de acceso ${escapeHtml(folio)}" style="background:#ffffff;padding:12px;border:1px solid #e5e7eb;border-radius:12px;" />`,
-    `<p style="color:#6b7280;font-size:11px;margin-top:16px;">Gobierno de México · SSPC — CIPSE XV. ${escapeHtml(origin)}</p>`,
+    `<h2 style="color:#10181d;margin:0 0 12px;">${escapeHtml(copy.heading)}</h2>`,
+    `<p style="color:#374151;font-size:14px;">${escapeHtml(
+      formatMessage(copy.greeting, {
+        name: fullName,
+        folio,
+      }),
+    )}</p>`,
+    `<p style="color:#374151;font-size:14px;">${escapeHtml(copy.instructions)}</p>`,
+    `<img width="240" height="240" src="cid:credential-qr" alt="${escapeHtml(
+      formatMessage(copy.qrAlt, { folio }),
+    )}" style="background:#ffffff;padding:12px;border:1px solid #e5e7eb;border-radius:12px;" />`,
+    `<p style="color:#6b7280;font-size:11px;margin-top:16px;">${escapeHtml(
+      copy.footer,
+    )} ${escapeHtml(origin)}</p>`,
+  ].join("\n");
+}
+
+function credentialText(
+  input: CredentialEmailInput,
+  copy: Dictionary["email"],
+): string {
+  const { folio, fullName, accessCode } = input;
+
+  return [
+    `CIPSE XV · México 2026`,
+    ``,
+    formatMessage(copy.textGreeting, { name: fullName, folio }),
+    copy.textInstructions,
+    formatMessage(copy.textCode, { code: accessCode }),
+    ``,
+    `Gobierno de México · SSPC`,
   ].join("\n");
 }
 
@@ -71,6 +103,8 @@ function escapeHtml(value: string): string {
 export async function sendCredentialEmail(
   input: CredentialEmailInput,
 ): Promise<EmailDelivery> {
+  const copy = getDictionary(input.locale).email;
+
   try {
     if (!smtpConfigured()) {
       return {
@@ -93,17 +127,9 @@ export async function sendCredentialEmail(
     await transporter.sendMail({
       from: process.env["SMTP_FROM"] ?? process.env["SMTP_USER"],
       to: input.to,
-      subject: `Credencial de acceso ${input.folio} — CIPSE XV México 2026`,
-      text: [
-        `CIPSE XV · México 2026`,
-        ``,
-        `Hola, ${input.fullName}. Su solicitud quedó registrada con folio ${input.folio}.`,
-        `Presente su código QR en el acceso del congreso.`,
-        `Código de acceso: ${input.accessCode}`,
-        ``,
-        `Gobierno de México · SSPC`,
-      ].join("\n"),
-      html: credentialHtml(input),
+      subject: formatMessage(copy.subject, { folio: input.folio }),
+      text: credentialText(input, copy),
+      html: credentialHtml(input, copy),
       attachments: [
         {
           filename: "credencial-qr.png",

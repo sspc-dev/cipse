@@ -57,17 +57,29 @@ export function SystemIcon(props: IconProps) {
 
 type ThemeOption = "light" | "dark" | "system";
 
+export type ThemeSwitcherLabels = {
+  groupLabel: string;
+  light: string;
+  dark: string;
+  system: string;
+};
+
+const defaultLabels: ThemeSwitcherLabels = {
+  groupLabel: "Selección de tema",
+  light: "Modo claro",
+  dark: "Modo oscuro",
+  system: "Según el sistema",
+};
+
 const themeOptions: {
   icon: (props: IconProps) => React.JSX.Element;
   id: ThemeOption;
-  label: string;
 }[] = [
-  { icon: SunIcon, id: "light", label: "Modo claro" },
-  { icon: MoonIcon, id: "dark", label: "Modo oscuro" },
-  { icon: SystemIcon, id: "system", label: "Según el sistema" },
+  { icon: SunIcon, id: "light" },
+  { icon: MoonIcon, id: "dark" },
 ];
 
-const THEME_KEYS = new Set<string>(["light", "dark", "system"]);
+const THEME_KEYS = new Set<string>(["light", "dark"]);
 
 const groupClass =
   "rounded-full border border-border bg-surface/80 p-1 shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/40";
@@ -75,7 +87,11 @@ const groupClass =
 const toggleClass =
   "size-8 rounded-full text-foreground/70 transition-colors hover:text-foreground data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent-soft-foreground";
 
-export function ThemeSwitcher() {
+export function ThemeSwitcher({
+  labels = defaultLabels,
+}: {
+  labels?: ThemeSwitcherLabels;
+}) {
   const mounted = useMounted();
   const { setTheme, theme } = useTheme();
 
@@ -88,7 +104,7 @@ export function ThemeSwitcher() {
   return (
     <div className="fixed right-4 top-4 z-50">
       <ToggleButtonGroup
-        aria-label="Selección de tema"
+        aria-label={labels.groupLabel}
         className={groupClass}
         disallowEmptySelection
         selectionMode="single"
@@ -100,10 +116,10 @@ export function ThemeSwitcher() {
           }
         }}
       >
-        {themeOptions.map(({ icon: Icon, id, label }) => (
+        {themeOptions.map(({ icon: Icon, id }) => (
           <ToggleButton
             key={id}
-            aria-label={label}
+            aria-label={labels[id]}
             className={toggleClass}
             id={id}
             isIconOnly

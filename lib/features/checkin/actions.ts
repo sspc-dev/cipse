@@ -1,6 +1,7 @@
 "use server";
 
 import { accessCodeSchema } from "./schemas";
+import { normalizeLocale, getDictionary } from "@/lib/i18n";
 import {
   findAccreditationByCode,
   registerAttendanceByDay,
@@ -39,15 +40,16 @@ export type CheckinActionResponse =
 
 export async function registerAttendance(
   accessCode: string,
+  locale?: string,
 ): Promise<CheckinActionResponse> {
+  const copy = getDictionary(normalizeLocale(locale)).checkin.errors;
   const session = await getAdminSession();
 
   if (!session) {
     return {
       ok: false,
       code: "SESSION_REQUIRED",
-      message:
-        "Inicie sesión de acreditador para registrar asistencia.",
+      message: copy.sessionRequired,
     };
   }
 
@@ -56,7 +58,7 @@ export async function registerAttendance(
     return {
       ok: false,
       code: "INVALID_CODE",
-      message: "El código no corresponde a un registro válido.",
+      message: copy.invalidCode,
     };
   }
 
@@ -70,7 +72,7 @@ export async function registerAttendance(
       return {
         ok: false,
         code: "INVALID_CODE",
-        message: "El código no corresponde a un registro válido.",
+        message: copy.invalidCode,
       };
     }
 
@@ -92,8 +94,7 @@ export async function registerAttendance(
     return {
       ok: false,
       code: "DB_ERROR",
-      message:
-        "No fue posible registrar la asistencia. Intente de nuevo más tarde.",
+      message: copy.dbError,
     };
   }
 }

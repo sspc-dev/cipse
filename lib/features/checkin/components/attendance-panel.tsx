@@ -1,12 +1,19 @@
 "use client";
 
-import { AlertCircleIcon, CheckIcon, ClockIcon } from "@/app/register/icons";
+import { AlertCircleIcon, CheckIcon, ClockIcon } from "@/components/icons";
 import { AdminLoginForm } from "@/lib/features/auth/components/admin-login-form";
 import type {
   CheckinActionResponse,
   CheckinRecordSummary,
 } from "@/lib/features/checkin/actions";
 import { registerAttendance } from "@/lib/features/checkin/actions";
+import { countryDisplayName } from "@/lib/features/register/data/countries";
+import {
+  formatMessage,
+  intlLocale,
+  type Dictionary,
+  type Locale,
+} from "@/lib/i18n";
 import { Button } from "@heroui/react";
 import { useState } from "react";
 
@@ -14,14 +21,16 @@ type AttendancePanelProps = {
   accessCode: string;
   adminSessionValid: boolean;
   delegado: CheckinRecordSummary;
+  dictionary: Dictionary;
   /** Hora de la asistencia de HOY (null si no se ha registrado el día actual). */
   initialCheckedInAt: string | null;
   initialAttendanceDays: number;
-  onAttendanceRegistered?: () => void;
+  /** Idioma de la interfaz, para textos y formato regional. */
+  locale: Locale;
 };
 
-function formatCheckinTime(iso: string): string {
-  return new Intl.DateTimeFormat("es-MX", {
+function formatCheckinTime(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(intlLocale(locale), {
     dateStyle: "short",
     timeStyle: "medium",
   }).format(new Date(iso));
@@ -31,19 +40,28 @@ const detailLabelClass =
   "text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70";
 
 function statusChipClass(status: string): string {
-  return status === "Aprobada"
+  return status === "APPROVED"
     ? "inline-flex items-center rounded-full border border-accent/30 bg-accent-soft px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
     : "inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink";
+}
+
+function statusLabelFor(status: string, dictionary: Dictionary): string {
+  if (status === "PENDING") return dictionary.status.PENDING;
+  if (status === "APPROVED") return dictionary.status.APPROVED;
+  if (status === "REJECTED") return dictionary.status.REJECTED;
+  return status;
 }
 
 export function AttendancePanel({
   accessCode,
   adminSessionValid,
   delegado,
+  dictionary,
   initialCheckedInAt,
   initialAttendanceDays,
-  onAttendanceRegistered,
+  locale,
 }: AttendancePanelProps) {
+  const copy = dictionary.checkin;
   const [sessionValid, setSessionValid] = useState(adminSessionValid);
   const [result, setResult] = useState<CheckinActionResponse | null>(
     initialCheckedInAt
@@ -58,46 +76,43 @@ export function AttendancePanel({
   );
   const [isPending, setIsPending] = useState(false);
 
-  const isApproved = delegado.status === "Aprobada";
+  const isApproved = delegado.status === "APPROVED";
+  const statusLabel = statusLabelFor(delegado.status, dictionary);
   const attendedAt = result?.ok ? result.attendedAt : "";
 
   async function submitAttendance() {
     if (isPending) return;
 
     setIsPending(true);
-    const outcome = await registerAttendance(accessCode);
+    const outcome = await registerAttendance(accessCode, locale);
     setIsPending(false);
     setResult(outcome);
-
-    if (outcome.ok && !outcome.alreadyToday) {
-      onAttendanceRegistered?.();
-    }
   }
 
   return (
     <div className="flex flex-col gap-5">
       <dl className="flex flex-col gap-2 rounded-xl border border-border/70 bg-background/60 px-4 py-3.5">
         <div className="flex items-center justify-between gap-3">
-          <dt className={detailLabelClass}>Folio</dt>
+          <dt className={detailLabelClass}>{copy.folio}</dt>
           <dd className="font-mono text-sm font-semibold tracking-[0.08em] text-gold-ink">
             {delegado.folio}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <dt className={detailLabelClass}>Delegado</dt>
+          <dt className={detailLabelClass}>{copy.delegate}</dt>
           <dd className="text-sm font-semibold text-foreground">
             {delegado.name} {delegado.lastname}
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <dt className={detailLabelClass}>País</dt>
-          <dd className="text-sm text-foreground">{delegado.country}</dd>
+          <dt className={detailLabelClass}>{copy.country}</dt>
+          <dd className="text-sm text-foreground">
+            {countryDisplayName(delegado.country, locale)}
+          </dd>
         </div>
         <div className="flex items-center justify-between gap-3">
-          <dt className={detailLabelClass}>Estado</dt>
-          <dd className={statusChipClass(delegado.status)}>
-            {delegado.status}
-          </dd>
+          <dt className={detailLabelClass}>{copy.status}</dt>
+          <dd className={statusChipClass(delegado.status)}>{statusLabel}</dd>
         </div>
       </dl>
 
@@ -107,15 +122,12 @@ export function AttendancePanel({
           role="warning"
         >
           <AlertCircleIcon className="mt-0.5 size-4 shrink-0" />
-          La acreditación no está aprobada. Confirme con el responsable antes de
-          registrar la asistencia.
+          {copy.notApproved}
         </p>
       ) : null}
 
       {!sessionValid ? (
-        <>
-          <AdminLoginForm onSuccess={() => setSessionValid(true)} />
-        </>
+        <AdminLoginForm onSuccess={() => setSessionValid(true)} />
       ) : (
         <div className="flex flex-col gap-2">
           {result?.ok ? (
@@ -125,9 +137,17 @@ export function AttendancePanel({
                 role="status"
               >
                 <ClockIcon className="mt-0.5 size-4 shrink-0" />
-                {`Ya fue registrada hoy${attendedAt ? ` a las ${formatCheckinTime(attendedAt)}` : ""} · `}
+                {formatMessage(copy.alreadyToday, {
+                  time: attendedAt
+                    ? formatMessage(copy.timeSuffix, {
+                        time: formatCheckinTime(attendedAt, locale),
+                      })
+                    : "",
+                })}
                 <span className="font-semibold">
-                  Día {result.attendanceDays} de asistencia
+                  {formatMessage(copy.attendanceDays, {
+                    n: result.attendanceDays,
+                  })}
                 </span>
               </p>
             ) : (
@@ -136,9 +156,17 @@ export function AttendancePanel({
                 role="status"
               >
                 <CheckIcon className="mt-0.5 size-4 shrink-0" />
-                {`Asistencia del día registrada${attendedAt ? ` a las ${formatCheckinTime(attendedAt)}` : ""} · `}
+                {formatMessage(copy.registeredToday, {
+                  time: attendedAt
+                    ? formatMessage(copy.timeSuffix, {
+                        time: formatCheckinTime(attendedAt, locale),
+                      })
+                    : "",
+                })}
                 <span className="font-semibold">
-                  Día {result.attendanceDays} de asistencia
+                  {formatMessage(copy.attendanceDays, {
+                    n: result.attendanceDays,
+                  })}
                 </span>
               </p>
             )
@@ -161,7 +189,7 @@ export function AttendancePanel({
             onPress={() => void submitAttendance()}
             variant="primary"
           >
-            Registrar asistencia de hoy
+            {copy.registerAttendance}
           </Button>
         </div>
       )}

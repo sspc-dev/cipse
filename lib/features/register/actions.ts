@@ -2,13 +2,14 @@
 
 import { headers } from "next/headers";
 import { withConnection } from "@/lib/db/mysql-client";
+import { getDictionary, normalizeLocale } from "@/lib/i18n";
 import {
   normalizeRegisterInput,
   type RegisterActionResponse,
 } from "./dto";
-import { sendCredentialEmail, type EmailDelivery } from "./email";
+import { sendCredentialEmail } from "./email";
 import { DuplicateEmailError, insertAccreditation } from "./datasource";
-import { registerSchema } from "./schema";
+import { createRegisterSchema } from "./schema";
 
 async function recordEmailDelivery(
   accreditationId: number,
@@ -31,16 +32,18 @@ async function recordEmailDelivery(
 
 export async function registerAccreditation(
   input: unknown,
+  locale?: string,
 ): Promise<RegisterActionResponse> {
-  const parsed = registerSchema.safeParse(input);
+  const dictionary = getDictionary(normalizeLocale(locale));
+  const copy = dictionary.register;
+  const parsed = createRegisterSchema(copy.errors).safeParse(input);
 
   if (!parsed.success) {
     return {
       ok: false,
       code: "VALIDATION",
       message:
-        parsed.error.issues[0]?.message ??
-        "Revise los datos del formulario e intente de nuevo.",
+        parsed.error.issues[0]?.message ?? copy.errors.generic,
     };
   }
 
@@ -61,6 +64,7 @@ export async function registerAccreditation(
       fullName: `${dto.name} ${dto.lastname}`,
       accessCode,
       origin,
+      locale: normalizeLocale(locale),
     });
 
     if (emailDelivery.state === "sent") {
@@ -70,14 +74,13 @@ export async function registerAccreditation(
     return { ok: true, id, accessCode, emailDelivery };
   } catch (error) {
     if (error instanceof DuplicateEmailError) {
-      return { ok: false, code: "DUPLICATE_EMAIL", message: error.message };
+      return { ok: false, code: "DUPLICATE_EMAIL", message: copy.errors.duplicateEmail };
     }
     console.error("[registerAccreditation] Error al insertar:", error);
     return {
       ok: false,
       code: "DB_ERROR",
-      message:
-        "No fue posible registrar la solicitud. Intente de nuevo más tarde.",
+      message: copy.errors.dbError,
     };
   }
 }

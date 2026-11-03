@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeIcon, EyeOffIcon } from "@/app/register/icons";
+import { EyeIcon, EyeOffIcon } from "@/components/icons";
 import { loginAdmin } from "@/lib/features/auth/actions";
 import { Button, Input, InputGroup, Label, TextField } from "@heroui/react";
 import { useState } from "react";

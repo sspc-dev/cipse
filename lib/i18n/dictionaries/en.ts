@@ -1,0 +1,160 @@
+import type { Dictionary } from "./es";
+
+export const en: Dictionary = {
+  common: {
+    event: "CIPSE XV · Mexico 2026",
+    org: "Government of Mexico · SSPC",
+    registerLink: "Registration",
+    languageSwitcherLabel: "Change language",
+    languageName: "English",
+    themeLabel: "Theme selection",
+    themeLight: "Light mode",
+    themeDark: "Dark mode",
+    themeSystem: "System preference",
+  },
+  metadata: {
+    rootTitle: "Accreditation registration — CIPSE XV",
+    rootDescription:
+      "Request your accreditation for CIPSE XV, the International Police Congress against Kidnapping and Extortion, Mexico 2026. Organized by SSPC.",
+    registerTitle: "Accreditation registration — CIPSE XV",
+    registerDescription:
+      "Request your accreditation for CIPSE XV, the International Police Congress against Kidnapping and Extortion, Mexico 2026.",
+    mediaTitle: "Multimedia — CIPSE XV",
+    mediaDescription:
+      "Photo, video and document gallery from the International Police Congress against Kidnapping and Extortion, CIPSE XV, Mexico 2026.",
+    checkinTitle: "Attendance registration — CIPSE XV",
+    checkinDescription:
+      "Credential verification and attendance registration for accredited CIPSE XV staff.",
+  },
+  status: {
+    PENDING: "Pending review",
+    APPROVED: "Approved",
+    REJECTED: "Rejected",
+  },
+  register: {
+    sealAlt: "Seal of the Ministry of Security and Citizen Protection",
+    coverAlt: "SSPC personnel during an operational deployment",
+    sspcLogoAlt: "Ministry of Security and Citizen Protection logo",
+    govLogoAlt: "Government of Mexico logo",
+    badge: "CIPSE · Mexico 2026",
+    heading: "Access registration",
+    subheading: "Complete your details to request access to the congress",
+    heroTitle:
+      "International Police Congress against Kidnapping and Extortion",
+    orgLine: "Government of Mexico · SSPC",
+    footer: "CIPSE XV · Accreditation",
+    formAriaLabel: "Accreditation registration form",
+    personalData: "Personal details",
+    nameLabel: "First name",
+    namePlaceholder: "e.g. Alejandro",
+    lastnameLabel: "Last name",
+    lastnamePlaceholder: "e.g. Valenzuela",
+    contactHeading: "Institutional contact",
+    emailLabel: "Email address",
+    emailPlaceholder: "name@agency.gob.mx",
+    emailDescription:
+      "It must belong to an institutional .gob or .org domain.",
+    submit: "Submit request",
+    errors: {
+      name: "Enter your first name.",
+      lastname: "Enter your last name.",
+      country: "Select your country.",
+      email: "Enter a valid email address.",
+      emailDomain:
+        "Use an institutional email with a .gob or .org domain.",
+      duplicateEmail:
+        "This email address already has a registered request.",
+      generic: "Review the form details and try again.",
+      dbError: "The request could not be registered. Please try again later.",
+    },
+    toasts: {
+      sent: "Request registered successfully",
+      skipped: "Request registered (email delivery not configured)",
+      failed: "Request registered (the email could not be sent)",
+      description: "Reference {folio}. Save or download it from the credential.",
+    },
+    success: {
+      heading: "Request registered",
+      description:
+        "Present this access code on the day of the congress. Saving it is enough to certify your entry.",
+      delegate: "Delegate",
+      status: "Status",
+      pending: "pending review",
+      email: "Email",
+      emailSent: "Credential sent to your email",
+      emailNotSent: "Not sent: save or download your QR here",
+      download: "Download credential",
+      registerAnother: "Register another delegate",
+      registerAnotherAria: "Register another person on this device",
+      qrAlt: "Access code {folio} for {name}",
+    },
+  },
+  country: {
+    label: "Country",
+    description: "Country of origin of the delegation.",
+    placeholder: "Search and select your country",
+    searchLabel: "Search country",
+    searchPlaceholder: "Search country...",
+    empty: "No matching countries",
+  },
+  media: {
+    title: "Congress multimedia",
+    galleryHeading: "Congress gallery",
+    galleryDescription:
+      "Official images, videos and documents from CIPSE XV, organized by activity day.",
+    empty: "No material has been published for {day} yet.",
+    openAria: "Open {title}",
+    dayLabel: "Day {n}",
+    kinds: {
+      image: "Image",
+      video: "Video",
+      document: "Document",
+    },
+    footer: "Government of Mexico · SSPC — CIPSE XV · Multimedia",
+  },
+  checkin: {
+    title: "Attendance registration",
+    subtitle: "Congress accreditation staff.",
+    sealAlt: "Seal of the Ministry of Security and Citizen Protection",
+    codeLabel: "Credential code",
+    codePlaceholder: "Code printed under the QR",
+    search: "Search",
+    invalidCode:
+      "The scanned code does not match a valid accreditation.",
+    scanPrompt:
+      "Scan the delegate's QR credential or enter the code manually.",
+    notApproved:
+      "This accreditation is not approved. Confirm with the person in charge before registering attendance.",
+    folio: "Reference",
+    delegate: "Delegate",
+    country: "Country",
+    status: "Status",
+    alreadyToday: "Already registered today{time}",
+    registeredToday: "Today's attendance registered{time}",
+    timeSuffix: " at {time}",
+    attendanceDays: "Day {n} of attendance",
+    registerAttendance: "Register today's attendance",
+    footer: "Government of Mexico · SSPC — CIPSE XV · Accreditation",
+    errors: {
+      sessionRequired:
+        "Sign in as accreditation staff to register attendance.",
+      invalidCode: "The code does not match a valid registration.",
+      dbError:
+        "Attendance could not be registered. Please try again later.",
+    },
+  },
+  email: {
+    subject: "Access credential {folio} — CIPSE XV Mexico 2026",
+    heading: "Access credential",
+    greeting:
+      "Hello, {name}. Your request was registered with reference {folio}.",
+    instructions:
+      "Present this QR code at the congress entrance. You will also find the attached image to save or print.",
+    qrAlt: "Access code {folio}",
+    footer: "Government of Mexico · SSPC — CIPSE XV.",
+    textGreeting:
+      "Hello, {name}. Your request was registered with reference {folio}.",
+    textInstructions: "Present your QR code at the congress entrance.",
+    textCode: "Access code: {code}",
+  },
+};
