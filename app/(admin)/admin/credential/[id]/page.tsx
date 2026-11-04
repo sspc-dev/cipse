@@ -11,7 +11,7 @@ import { PrintCredentialButton } from "../../print-credential-button";
 
 export const metadata: Metadata = {
   title: "Credencial imprimible — CIPSE XV",
-  description: "Credencial QR imprimible de un delegado del CIPSE XV.",
+  description: "Credencial QR imprimible de un participante del CIPSE XV.",
   robots: { index: false, follow: false },
 };
 
@@ -94,7 +94,7 @@ async function CredentialPrintContent({
         <dl className="mt-4 flex flex-col gap-1 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-left text-xs">
           <div className="flex items-center justify-between gap-3">
             <dt className="font-semibold uppercase tracking-[0.14em] text-zinc-500">
-              Delegado
+              Participante
             </dt>
             <dd className="font-semibold text-zinc-900">
               {accreditation.name} {accreditation.lastname}

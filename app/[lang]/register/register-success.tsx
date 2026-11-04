@@ -6,6 +6,7 @@ import {
   QrVisual,
   saveCredentialPng,
 } from "@/lib/features/register/components/qr-visual";
+import { formatMessage } from "@/lib/i18n/format";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { CheckIcon } from "@/components/icons";
 
@@ -58,21 +59,26 @@ export function QrCredentialCard({
             {credential.name} {credential.lastname}
           </dd>
         </div>
-        {credential.emailDelivery ? (
-          <div className="flex items-center justify-between gap-3">
-            <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
+        {credential.emailDelivery && credential.email ? (
+          <div className="flex items-start justify-between gap-3">
+            <dt className="shrink-0 pt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
               {copy.email}
             </dt>
             <dd
               className={
                 credential.emailDelivery.state === "sent"
-                  ? "text-xs font-semibold text-accent-soft-foreground"
-                  : "text-xs font-semibold text-gold-ink"
+                  ? "max-w-[70%] text-right text-xs font-semibold text-accent-soft-foreground"
+                  : "max-w-[70%] text-right text-xs font-semibold text-gold-ink"
               }
             >
-              {credential.emailDelivery.state === "sent"
-                ? copy.emailSent
-                : copy.emailNotSent}
+              {formatMessage(
+                credential.emailDelivery.state === "sent"
+                  ? copy.emailSent
+                  : credential.emailDelivery.state === "skipped"
+                    ? copy.emailSkipped
+                    : copy.emailFailed,
+                { email: credential.email },
+              )}
             </dd>
           </div>
         ) : null}

@@ -103,3 +103,16 @@ export async function deleteEventMediaRow(id: number): Promise<void> {
     await connection.query("DELETE FROM event_media WHERE id = ?", [id]);
   });
 }
+
+export async function updateEventMedia(input: {
+  id: number;
+  day: number;
+  title: string;
+}): Promise<void> {
+  await withConnection(async (connection) => {
+    await connection.query(
+      "UPDATE event_media SET day = ?, title = ? WHERE id = ?",
+      [input.day, input.title, input.id],
+    );
+  });
+}

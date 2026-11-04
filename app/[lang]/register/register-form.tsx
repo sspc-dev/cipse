@@ -80,6 +80,7 @@ export function RegisterForm({
         name: values.name.trim(),
         lastname: values.lastname.trim(),
         accessCode: result.accessCode,
+        email: result.email,
         emailDelivery: { state: result.emailDelivery.state },
       });
       return;

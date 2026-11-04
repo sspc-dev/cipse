@@ -2,21 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/features/auth/actions";
-import { deleteEventMediaRow, findEventMediaById } from "./datasource";
-import { mediaIdSchema } from "./schemas";
+import {
+  deleteEventMediaRow,
+  findEventMediaById,
+  updateEventMedia,
+} from "./datasource";
+import { mediaIdSchema, mediaUpdateSchema } from "./schemas";
 import {
   deleteMediaObject,
   isObjectNotFoundError,
   MediaStorageNotConfiguredError,
 } from "./storage";
 
-export type DeleteMediaResult =
+export type MediaActionResult =
   | { ok: true; message: string }
   | { ok: false; message: string };
 
 export async function deleteEventMediaAction(
   input: unknown,
-): Promise<DeleteMediaResult> {
+): Promise<MediaActionResult> {
   const session = await getAdminSession();
   if (!session) {
     return {
@@ -69,4 +73,43 @@ export async function deleteEventMediaAction(
   revalidatePath("/admin/multimedia");
   revalidatePath("/multimedia");
   return { ok: true, message: "Archivo eliminado." };
+}
+
+export async function updateEventMediaAction(
+  input: unknown,
+): Promise<MediaActionResult> {
+  const session = await getAdminSession();
+  if (!session) {
+    return {
+      ok: false,
+      message: "La sesión expiró. Inicie sesión de nuevo para continuar.",
+    };
+  }
+
+  const parsed = mediaUpdateSchema.safeParse(input);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: parsed.error.issues[0]?.message ?? "Revise los datos del archivo.",
+    };
+  }
+
+  const media = await findEventMediaById(parsed.data.id);
+  if (!media) {
+    return { ok: false, message: "El archivo ya no existe." };
+  }
+
+  try {
+    await updateEventMedia(parsed.data);
+  } catch (error) {
+    console.error("[updateEventMediaAction] Error al actualizar:", error);
+    return {
+      ok: false,
+      message: "No fue posible actualizar el archivo. Intente de nuevo.",
+    };
+  }
+
+  revalidatePath("/admin/multimedia");
+  revalidatePath("/multimedia");
+  return { ok: true, message: "Archivo actualizado." };
 }

@@ -37,6 +37,7 @@ export function LanguageSwitcher({
 
     const nextPath = segments.join("/") || `/${target}`;
     document.cookie = `${LANG_COOKIE}=${target}; path=/; max-age=${LANG_COOKIE_MAX_AGE}; samesite=lax`;
+    document.documentElement.lang = target;
     router.push(nextPath);
   }
 

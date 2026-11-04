@@ -21,7 +21,9 @@ export async function generateMetadata(
 const gridOverlayClass =
   "absolute inset-0 opacity-[0.14] bg-[linear-gradient(to_right,rgba(255,255,255,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:48px_48px] mask-[radial-gradient(85%_75%_at_50%_40%,black,transparent)]";
 
-export default async function RegisterPage(props: PageProps<"/[lang]/register">) {
+export default async function RegisterPage(
+  props: PageProps<"/[lang]/register">,
+) {
   const { lang } = await props.params;
 
   if (!hasLocale(lang)) {
@@ -150,7 +152,9 @@ export default async function RegisterPage(props: PageProps<"/[lang]/register">)
           </div>
 
           <footer className="reveal relative z-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 px-5 py-5 text-[11px] text-muted/60 [animation-delay:500ms] sm:flex-row sm:px-8 lg:px-12">
-            <span className="inline-flex items-center gap-2">{copy.orgLine}</span>
+            <span className="inline-flex items-center gap-2">
+              {copy.orgLine}
+            </span>
             <div className="flex items-center gap-3">
               <LanguageSwitcher
                 className="h-7 rounded-full px-3 text-[11px] font-semibold"

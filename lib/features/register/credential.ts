@@ -8,6 +8,7 @@ export type CredentialData = {
   name: string;
   lastname: string;
   accessCode: string;
+  email?: string;
   emailDelivery?: { state: "sent" | "failed" | "skipped" };
 };
 

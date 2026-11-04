@@ -274,6 +274,15 @@ export function TrashIcon(props: IconProps) {
   );
 }
 
+export function PencilIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-3-3L5 17z" />
+      <path d="M13.5 6.5 17.5 10.5" />
+    </svg>
+  );
+}
+
 export function CameraIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
@@ -319,3 +328,10 @@ export function CalendarIcon(props: IconProps) {
   );
 }
 
+export function PlayIcon(props: IconProps) {
+  return (
+    <svg {...base} fill="currentColor" stroke="none" {...props}>
+      <path d="M8 5.5v13a1 1 0 0 0 1.5.87l10-6.5a1 1 0 0 0 0-1.74l-10-6.5A1 1 0 0 0 8 5.5z" />
+    </svg>
+  );
+}

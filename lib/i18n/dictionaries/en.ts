@@ -34,8 +34,7 @@ export const en: Dictionary = {
     badge: "CIPSE · Mexico 2026",
     heading: "Access registration",
     subheading: "Complete your details to request access to the congress",
-    heroTitle:
-      "International Police Congress against Kidnapping and Extortion",
+    heroTitle: "International Police Congress against Kidnapping and Extortion",
     orgLine: "Government of Mexico · SSPC",
     footer: "CIPSE XV · Accreditation",
     formAriaLabel: "Accreditation registration form",
@@ -47,16 +46,14 @@ export const en: Dictionary = {
     contactHeading: "Contact details",
     emailLabel: "Email address",
     emailPlaceholder: "name@example.com",
-    emailDescription:
-      "We will send your access code to this email address.",
+    emailDescription: "We will send your access code to this email address.",
     submit: "Submit request",
     errors: {
       name: "Enter your first name.",
       lastname: "Enter your last name.",
       country: "Select your country.",
       email: "Enter a valid email address.",
-      duplicateEmail:
-        "This email address already has a registered request.",
+      duplicateEmail: "This email address already has a registered request.",
       generic: "Review the form details and try again.",
       dbError: "The request could not be registered. Please try again later.",
     },
@@ -64,18 +61,21 @@ export const en: Dictionary = {
       sent: "Request registered successfully",
       skipped: "Request registered (email delivery not configured)",
       failed: "Request registered (the email could not be sent)",
-      description: "Reference {folio}. Save or download it from the credential.",
+      description:
+        "Reference {folio}. Save or download it from the credential.",
     },
     success: {
       heading: "Request registered",
       description:
         "Present this access code on the day of the congress. Saving it is enough to certify your entry.",
-      delegate: "Delegate",
+      delegate: "Participant",
       email: "Email",
-      emailSent: "Credential sent to your email",
-      emailNotSent: "Not sent: save or download your QR here",
+      emailSent: "Credential sent to {email}",
+      emailSkipped: "{email}",
+      emailFailed:
+        "{email}: the email could not be sent. Save or download your credential here.",
       download: "Download credential",
-      registerAnother: "Register another delegate",
+      registerAnother: "Register another participant",
       registerAnotherAria: "Register another person on this device",
       qrAlt: "Access code {folio} for {name}",
     },
@@ -90,17 +90,62 @@ export const en: Dictionary = {
   },
   media: {
     title: "Congress multimedia",
+    eyebrow: "Multimedia archive & official records",
+    heroLine1: "Repository & proceedings of the",
+    heroHighlight: "XV International Congress",
+    heroLine2: "against kidnapping and extortion",
+    heroDescription:
+      "Official CIPSE XV material: conferences, photographs and institutional documents organized by activity day and file type.",
+    stats: {
+      files: "Published files",
+      days: "Days with material",
+      formats: "Available formats",
+    },
+    featuredEyebrow: "Featured record",
+    featuredEmpty:
+      "Official material will be published in this section as the congress progresses.",
+    galleryEyebrow: "Gallery & official sessions",
     galleryHeading: "Congress gallery",
     galleryDescription:
       "Official images, videos and documents from CIPSE XV, organized by activity day.",
-    empty: "No material has been published for {day} yet.",
-    openAria: "Open {title}",
     dayLabel: "Day {n}",
+    dayTabsAria: "Filter material by day",
+    filtersAria: "Filter by file type",
+    filterAll: "All",
+    filters: {
+      image: "Photographs",
+      video: "Videos",
+      document: "Documents",
+    },
+    searchLabel: "Search official files",
+    searchPlaceholder: "Search sessions or files...",
+    counterLabel: "Files",
+    noMedia: "No material has been published yet.",
+    noMediaHint:
+      "Official files will appear here once the accreditation team publishes them.",
+    empty: "No material has been published for {day} yet.",
+    emptyFiltered: "No files matched the selected criteria.",
+    emptyFilteredHint:
+      "Select “All” or choose another day to browse more official material.",
+    openAria: "Open {title}",
+    openDocument: "Open document",
+    openDocumentAria: "Open document {title} in a new tab",
     kinds: {
       image: "Image",
       video: "Video",
       document: "Document",
     },
+    modal: {
+      badge: "Official view",
+      meta: "Official congress channel · Verified file",
+      imageAlt: "High-resolution view of {title}",
+      videoAria: "Playback of {title}",
+      download: "Download official file",
+      closeAria: "Close preview",
+    },
+    downloadPackage: "Download package (.ZIP)",
+    downloadUnavailable: "Available soon",
+    securityNote: "Individual file download · Official servers",
     footer: "Government of Mexico · SSPC — CIPSE XV · Multimedia",
   },
   checkin: {
@@ -110,12 +155,11 @@ export const en: Dictionary = {
     codeLabel: "Credential code",
     codePlaceholder: "Code printed under the QR",
     search: "Search",
-    invalidCode:
-      "The scanned code does not match a valid accreditation.",
+    invalidCode: "The scanned code does not match a valid accreditation.",
     scanPrompt:
-      "Scan the delegate's QR credential or enter the code manually.",
+      "Scan the participant's QR credential or enter the code manually.",
     folio: "Reference",
-    delegate: "Delegate",
+    delegate: "Participant",
     country: "Country",
     alreadyToday: "Already registered today{time}",
     registeredToday: "Today's attendance registered{time}",
@@ -124,11 +168,9 @@ export const en: Dictionary = {
     registerAttendance: "Register today's attendance",
     footer: "Government of Mexico · SSPC — CIPSE XV · Accreditation",
     errors: {
-      sessionRequired:
-        "Sign in as accreditation staff to register attendance.",
+      sessionRequired: "Sign in as accreditation staff to register attendance.",
       invalidCode: "The code does not match a valid registration.",
-      dbError:
-        "Attendance could not be registered. Please try again later.",
+      dbError: "Attendance could not be registered. Please try again later.",
     },
   },
   email: {

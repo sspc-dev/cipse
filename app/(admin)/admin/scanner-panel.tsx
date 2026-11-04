@@ -211,7 +211,7 @@ export function ScannerPanel() {
                   </span>
                 </div>
                 <p className="max-w-xs text-xs leading-relaxed text-white/85">
-                  Escanee la credencial QR del delegado: la asistencia se
+                  Escanee la credencial QR del participante: la asistencia se
                   registra automáticamente.
                 </p>
                 <Button

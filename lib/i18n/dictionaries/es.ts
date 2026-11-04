@@ -28,8 +28,7 @@ export const es = {
   register: {
     sealAlt: "Sello de la Secretaría de Seguridad y Protección Ciudadana",
     coverAlt: "Elementos de la SSPC en despliegue operativo",
-    sspcLogoAlt:
-      "Logo de la Secretaría de Seguridad y Protección Ciudadana",
+    sspcLogoAlt: "Logo de la Secretaría de Seguridad y Protección Ciudadana",
     govLogoAlt: "Logo del Gobierno de México",
     badge: "CIPSE · México 2026",
     heading: "Registro de acceso",
@@ -47,8 +46,7 @@ export const es = {
     contactHeading: "Datos de contacto",
     emailLabel: "Correo electrónico",
     emailPlaceholder: "nombre@ejemplo.com",
-    emailDescription:
-      "Le enviaremos el código de acceso a este correo.",
+    emailDescription: "Le enviaremos el código de acceso a este correo.",
     submit: "Registrar solicitud",
     errors: {
       name: "Ingrese su nombre.",
@@ -71,14 +69,15 @@ export const es = {
       heading: "Solicitud registrada",
       description:
         "Presente este código de acceso el día del congreso. Guardarlo es suficiente para acreditar su ingreso.",
-      delegate: "Delegado",
+      delegate: "Participante",
       email: "Correo",
-      emailSent: "Credencial enviada a su correo",
-      emailNotSent: "Sin envío: guarde o descargue su QR aquí",
+      emailSent: "Credencial enviada a {email}",
+      emailSkipped: "{email}",
+      emailFailed:
+        "{email}: no se pudo enviar el correo. Guarde o descargue su credencial aquí.",
       download: "Descargar credencial",
-      registerAnother: "Registrar otro delegado",
-      registerAnotherAria:
-        "Registrar a otra persona desde este dispositivo",
+      registerAnother: "Registrar otro participante",
+      registerAnotherAria: "Registrar a otra persona desde este dispositivo",
       qrAlt: "Código de acceso {folio} de {name}",
     },
   },
@@ -92,17 +91,62 @@ export const es = {
   },
   media: {
     title: "Multimedia del congreso",
+    eyebrow: "Acervo multimedia & registros oficiales",
+    heroLine1: "Repositorio & actas del",
+    heroHighlight: "XV Congreso Internacional",
+    heroLine2: "contra el secuestro y la extorsión",
+    heroDescription:
+      "Material oficial del CIPSE XV: conferencias, fotografías y documentos institucionales organizados por jornada y tipo de archivo.",
+    stats: {
+      files: "Archivos publicados",
+      days: "Jornadas con material",
+      formats: "Formatos disponibles",
+    },
+    featuredEyebrow: "Registro destacado",
+    featuredEmpty:
+      "El material oficial se publicará en esta sección conforme avance el congreso.",
+    galleryEyebrow: "Galería & ponencias oficiales",
     galleryHeading: "Galería del congreso",
     galleryDescription:
       "Imágenes, videos y documentos oficiales del CIPSE XV, organizados por día de actividad.",
-    empty: "Aún no hay material publicado para {day}.",
-    openAria: "Abrir {title}",
     dayLabel: "Día {n}",
+    dayTabsAria: "Filtrar material por jornada",
+    filtersAria: "Filtrar por tipo de archivo",
+    filterAll: "Todos",
+    filters: {
+      image: "Fotografías",
+      video: "Videos",
+      document: "Documentos",
+    },
+    searchLabel: "Buscar archivos oficiales",
+    searchPlaceholder: "Buscar ponencias o archivos...",
+    counterLabel: "Archivos",
+    noMedia: "Todavía no hay material publicado.",
+    noMediaHint:
+      "Los archivos oficiales aparecerán aquí cuando el equipo de acreditación los publique.",
+    empty: "Aún no hay material publicado para {day}.",
+    emptyFiltered: "No se encontraron archivos con los criterios seleccionados.",
+    emptyFilteredHint:
+      "Seleccione «Todos» o elija otra jornada para revisar más material oficial.",
+    openAria: "Abrir {title}",
+    openDocument: "Abrir documento",
+    openDocumentAria: "Abrir documento {title} en una pestaña nueva",
     kinds: {
       image: "Imagen",
       video: "Video",
       document: "Documento",
     },
+    modal: {
+      badge: "Vista oficial",
+      meta: "Canal oficial del congreso · Archivo verificado",
+      imageAlt: "Vista de alta resolución de {title}",
+      videoAria: "Reproducción de {title}",
+      download: "Descargar archivo oficial",
+      closeAria: "Cerrar vista previa",
+    },
+    downloadPackage: "Descargar paquete (.ZIP)",
+    downloadUnavailable: "Disponible próximamente",
+    securityNote: "Descarga individual por archivo · Servidores oficiales",
     footer: "Gobierno de México · SSPC — CIPSE XV · Multimedia",
   },
   checkin: {
@@ -115,9 +159,9 @@ export const es = {
     invalidCode:
       "El código escaneado no corresponde a una acreditación válida.",
     scanPrompt:
-      "Escaneé la credencial QR del delegado o ingrese su código manualmente.",
+      "Escaneé la credencial QR del participante o ingrese su código manualmente.",
     folio: "Folio",
-    delegate: "Delegado",
+    delegate: "Participante",
     country: "País",
     alreadyToday: "Ya fue registrada hoy{time}",
     registeredToday: "Asistencia del día registrada{time}",
@@ -136,8 +180,7 @@ export const es = {
   email: {
     subject: "Credencial de acceso {folio} — CIPSE XV México 2026",
     heading: "Credencial de acceso",
-    greeting:
-      "Hola, {name}. Su solicitud quedó registrada con folio {folio}.",
+    greeting: "Hola, {name}. Su solicitud quedó registrada con folio {folio}.",
     instructions:
       "Presente este código QR en el acceso del congreso. También encontrará la imagen adjunta para guardar o imprimir.",
     qrAlt: "Código de acceso {folio}",

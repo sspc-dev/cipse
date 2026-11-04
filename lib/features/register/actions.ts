@@ -71,7 +71,7 @@ export async function registerAccreditation(
       await recordEmailDelivery(id);
     }
 
-    return { ok: true, id, accessCode, emailDelivery };
+    return { ok: true, id, accessCode, email: dto.email, emailDelivery };
   } catch (error) {
     if (error instanceof DuplicateEmailError) {
       return { ok: false, code: "DUPLICATE_EMAIL", message: copy.errors.duplicateEmail };

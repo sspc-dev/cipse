@@ -10,6 +10,9 @@ export class DuplicateEmailError extends Error {
   }
 }
 
+/** Distingue la asistencia otorgada al registrarse de un escaneo del personal. */
+const SELF_CHECKIN_LABEL = "Autorregistro";
+
 function isDuplicateKeyError(error: unknown): boolean {
   const errno = (error as { errno?: number } | null)?.errno;
   const code = (error as { code?: string } | null)?.code;
@@ -35,6 +38,14 @@ export async function insertAccreditation(
       if (typeof id !== "number" || id <= 0) {
         throw new Error("MySQL no devolvió un id válido para la inserción.");
       }
+
+      // El registro web otorga la asistencia del día en el mismo alta.
+      await connection.query(
+        `INSERT INTO attendance_records
+           (accreditation_id, attended_on, attended_at, checked_in_by)
+         VALUES (?, CURDATE(), CURRENT_TIMESTAMP, ?)`,
+        [id, SELF_CHECKIN_LABEL],
+      );
 
       return { id, accessCode };
     });

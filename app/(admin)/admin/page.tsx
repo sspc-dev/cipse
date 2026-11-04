@@ -391,7 +391,7 @@ async function KpiSection({
       chip: `${attendShare}% de registrados`,
       href: listHref({ search, country, attendance: "today" }),
       active: activeAttendance === "today",
-      ariaLabel: "Filtrar el listado por delegados con asistencia hoy",
+      ariaLabel: "Filtrar el listado por participantes con asistencia hoy",
     },
     {
       value: stats.withoutAttendance.toLocaleString("es-MX"),
@@ -403,7 +403,7 @@ async function KpiSection({
           : undefined,
       href: listHref({ search, country, attendance: "never" }),
       active: activeAttendance === "never",
-      ariaLabel: "Filtrar el listado por delegados sin asistencia",
+      ariaLabel: "Filtrar el listado por participantes sin asistencia",
     },
     {
       value: stats.newLast7Days.toLocaleString("es-MX"),
@@ -627,7 +627,7 @@ async function RegistrationsList({
           <p className="max-w-72 text-xs leading-relaxed text-muted">
             {hasFilters
               ? "No hay acreditaciones que coincidan con los filtros activos."
-              : "Las solicitudes de los delegados aparecerán aquí automáticamente."}
+              : "Las solicitudes de los participantes aparecerán aquí automáticamente."}
           </p>
           {hasFilters ? (
             <Link
@@ -993,7 +993,7 @@ async function AdminContent({
                 className="h-10 w-full rounded-full border border-field-border bg-field-background pl-10 pr-9 text-sm text-field-foreground transition-colors placeholder:text-field-placeholder focus:border-field-border-hover"
                 defaultValue={searchQuery}
                 name="q"
-                placeholder="Buscar delegado, correo o folio"
+                placeholder="Buscar participante, correo o folio"
                 type="search"
                 autoComplete="off"
               />

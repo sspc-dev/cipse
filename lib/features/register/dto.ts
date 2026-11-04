@@ -18,6 +18,7 @@ export type RegisterActionResponse =
       ok: true;
       id: number;
       accessCode: string;
+      email: string;
       emailDelivery: EmailDelivery;
     }
   | { ok: false; code: RegisterActionErrorCode; message: string };

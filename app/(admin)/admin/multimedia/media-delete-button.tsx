@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertDialog, Button } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -8,11 +9,11 @@ import { TrashIcon } from "@/components/icons";
 
 export function MediaDeleteButton({ id, title }: { id: number; title: string }) {
   const router = useRouter();
+  const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false);
 
   async function remove() {
     if (isPending) return;
-    if (!window.confirm(`¿Eliminar “${title}” del almacenamiento?`)) return;
 
     setIsPending(true);
     const result = await deleteEventMediaAction(id);
@@ -24,19 +25,55 @@ export function MediaDeleteButton({ id, title }: { id: number; title: string }) 
     }
 
     toast.success(result.message);
+    setIsOpen(false);
     router.refresh();
   }
 
   return (
-    <button
-      aria-label={`Eliminar ${title}`}
-      className="inline-flex items-center gap-1.5 rounded-full border border-danger/30 px-3 py-1.5 text-[11px] font-semibold text-danger transition-colors hover:bg-danger/10 disabled:opacity-60"
-      disabled={isPending}
-      onClick={() => void remove()}
-      type="button"
-    >
-      <TrashIcon className="size-3.5" aria-hidden="true" />
-      {isPending ? "Eliminando…" : "Eliminar"}
-    </button>
+    <AlertDialog>
+      <Button
+        aria-label={`Eliminar ${title}`}
+        onPress={() => setIsOpen(true)}
+        size="sm"
+        variant="danger-soft"
+      >
+        <TrashIcon aria-hidden="true" className="size-3.5" />
+        Eliminar
+      </Button>
+
+      <AlertDialog.Backdrop
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+        variant="blur"
+      >
+        <AlertDialog.Container>
+          <AlertDialog.Dialog>
+            <AlertDialog.CloseTrigger />
+            <AlertDialog.Header>
+              <AlertDialog.Icon status="danger" />
+              <AlertDialog.Heading>¿Eliminar este archivo?</AlertDialog.Heading>
+            </AlertDialog.Header>
+            <AlertDialog.Body>
+              <p>
+                Se eliminará <strong>“{title}”</strong> del almacenamiento y de
+                la galería pública. Esta acción no se puede deshacer.
+              </p>
+            </AlertDialog.Body>
+            <AlertDialog.Footer>
+              <Button slot="close" variant="tertiary">
+                Cancelar
+              </Button>
+              <Button
+                isPending={isPending}
+                onPress={() => void remove()}
+                variant="danger"
+              >
+                Eliminar archivo
+              </Button>
+            </AlertDialog.Footer>
+          </AlertDialog.Dialog>
+        </AlertDialog.Container>
+      </AlertDialog.Backdrop>
+    </AlertDialog>
   );
 }
