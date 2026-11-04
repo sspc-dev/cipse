@@ -44,18 +44,17 @@ export const es = {
     namePlaceholder: "Ej. Alejandro",
     lastnameLabel: "Apellidos",
     lastnamePlaceholder: "Ej. Valenzuela",
-    contactHeading: "Contacto institucional",
+    contactHeading: "Datos de contacto",
     emailLabel: "Correo electrónico",
-    emailPlaceholder: "nombre@dependencia.gob.mx",
+    emailPlaceholder: "nombre@ejemplo.com",
     emailDescription:
-      "Deberá pertenecer a un dominio institucional .gob o .org.",
+      "Le enviaremos el código de acceso a este correo.",
     submit: "Registrar solicitud",
     errors: {
       name: "Ingrese su nombre.",
       lastname: "Ingrese sus apellidos.",
       country: "Indique su país.",
       email: "Ingrese un correo electrónico válido.",
-      emailDomain: "Use un correo institucional con dominio .gob o .org.",
       duplicateEmail:
         "Este correo electrónico ya tiene una solicitud registrada.",
       generic: "Revise los datos del formulario e intente de nuevo.",

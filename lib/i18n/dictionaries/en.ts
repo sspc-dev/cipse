@@ -44,19 +44,17 @@ export const en: Dictionary = {
     namePlaceholder: "e.g. Alejandro",
     lastnameLabel: "Last name",
     lastnamePlaceholder: "e.g. Valenzuela",
-    contactHeading: "Institutional contact",
+    contactHeading: "Contact details",
     emailLabel: "Email address",
-    emailPlaceholder: "name@agency.gob.mx",
+    emailPlaceholder: "name@example.com",
     emailDescription:
-      "It must belong to an institutional .gob or .org domain.",
+      "We will send your access code to this email address.",
     submit: "Submit request",
     errors: {
       name: "Enter your first name.",
       lastname: "Enter your last name.",
       country: "Select your country.",
       email: "Enter a valid email address.",
-      emailDomain:
-        "Use an institutional email with a .gob or .org domain.",
       duplicateEmail:
         "This email address already has a registered request.",
       generic: "Review the form details and try again.",

@@ -10,12 +10,7 @@ export function createRegisterSchema(messages: RegisterValidationMessages) {
     name: z.string().trim().min(2, messages.name),
     lastname: z.string().trim().min(2, messages.lastname),
     country: z.string().trim().min(2, messages.country),
-    email: z
-      .email(messages.email)
-      .refine(
-        (value) => /\.(gob|org)(\.[a-z]{2,})?$/i.test(value.split("@")[1] ?? ""),
-        messages.emailDomain,
-      ),
+    email: z.email(messages.email),
   });
 }
 
