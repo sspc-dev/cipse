@@ -2,6 +2,7 @@
 
 import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { useTheme } from "next-themes";
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore, type SVGProps } from "react";
 
 /*
@@ -93,7 +94,12 @@ export function ThemeSwitcher({
   labels?: ThemeSwitcherLabels;
 }) {
   const mounted = useMounted();
+  const pathname = usePathname();
   const { setTheme, theme } = useTheme();
+
+  // La vista de impresión de credenciales debe quedar limpia en pantalla
+  // y en papel; el selector de tema no se renderiza en esa ruta.
+  if (pathname.startsWith("/admin/credential/")) return null;
 
   if (!mounted) return null;
 

@@ -54,11 +54,11 @@ function buildSearchFilter(search: string): {
   if (isFolio) {
     // Los folios son CIPSE-0001: coincide por id.
     const folioId = Number(search.trim().split("-")[1]);
-    return { condition: "id = ?", params: [String(folioId)] };
+    return { condition: "a.id = ?", params: [String(folioId)] };
   }
 
   return {
-    condition: "name LIKE ? OR lastname LIKE ? OR email LIKE ?",
+    condition: "a.name LIKE ? OR a.lastname LIKE ? OR a.email LIKE ?",
     params: [pattern, pattern, pattern],
   };
 }
@@ -67,7 +67,7 @@ export function buildCountryFilter(country: string): {
   condition: string;
   params: string[];
 } {
-  return { condition: "country = ?", params: [country] };
+  return { condition: "a.country = ?", params: [country] };
 }
 
 /**
@@ -84,7 +84,7 @@ export function buildAttendanceFilter(kind: AttendanceFilterKind): {
     return {
       condition: `EXISTS (
         SELECT 1 FROM attendance_records t
-        WHERE t.accreditation_id = accreditations.id
+        WHERE t.accreditation_id = a.id
           AND t.attended_on = CURDATE()
       )`,
       params: [],
@@ -94,7 +94,7 @@ export function buildAttendanceFilter(kind: AttendanceFilterKind): {
   return {
     condition: `NOT EXISTS (
       SELECT 1 FROM attendance_records t
-      WHERE t.accreditation_id = accreditations.id
+      WHERE t.accreditation_id = a.id
     )`,
     params: [],
   };
@@ -153,7 +153,7 @@ export async function listAccreditations(
     );
 
     const [countRows] = await connection.query<RowDataPacket[]>(
-      `SELECT COUNT(*) AS total FROM accreditations ${combined.whereClause}`,
+      `SELECT COUNT(*) AS total FROM accreditations a ${combined.whereClause}`,
       combined.whereParams,
     );
 
