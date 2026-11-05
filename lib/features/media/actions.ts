@@ -43,6 +43,7 @@ export async function deleteEventMediaAction(
     await deleteMediaObject(media.objectKey);
   } catch (error) {
     if (error instanceof MediaStorageNotConfiguredError) {
+      console.error("[deleteEventMediaAction]", error.message);
       return {
         ok: false,
         message:

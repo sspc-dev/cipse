@@ -10,7 +10,10 @@ import { formatMessage } from "@/lib/i18n/format";
 import { type Dictionary, type Locale } from "@/lib/i18n";
 import { CheckIcon } from "@/components/icons";
 
-export { credentialCheckinUrl, folioLabel } from "@/lib/features/register/credential";
+export {
+  credentialCheckinUrl,
+  folioLabel,
+} from "@/lib/features/register/credential";
 export type { CredentialData } from "@/lib/features/register/credential";
 
 export function QrCredentialCard({
@@ -45,12 +48,9 @@ export function QrCredentialCard({
         </p>
       </div>
 
-      <QrVisual
-        altTemplate={copy.qrAlt}
-        credential={credential}
-      />
+      <QrVisual altTemplate={copy.qrAlt} credential={credential} />
 
-      <dl className="flex w-full flex-col gap-1.5 rounded-xl border border-border bg-foreground/[0.03] px-4 py-3.5 text-left">
+      <dl className="flex w-full flex-col gap-1.5 rounded-xl border border-border bg-foreground/3 px-4 py-3.5 text-left">
         <div className="flex items-center justify-between gap-3">
           <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
             {copy.delegate}
@@ -88,7 +88,10 @@ export function QrCredentialCard({
         <Button
           className="h-11 rounded-full text-sm font-semibold"
           onPress={() =>
-            void saveCredentialPng(credential, locale === "en" ? "credential" : "credencial")
+            void saveCredentialPng(
+              credential,
+              locale === "en" ? "credential" : "credencial",
+            )
           }
           variant="secondary"
         >

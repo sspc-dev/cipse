@@ -82,7 +82,7 @@ export function QrVisual({
             alt=""
             aria-hidden="true"
             className="size-[85%] object-contain"
-            src="/imgs/SSPC.png"
+            src="/imgs/XV CIPSE logos_vv1.webp"
           />
         </div>
       </div>
@@ -125,16 +125,10 @@ async function composeCredentialPng(
     qr.onerror = () => reject(new Error("No se pudo cargar el QR."));
   });
   const qrSide = PNG_SIZE - PNG_HEADER_HEIGHT;
-  ctx.drawImage(
-    qr,
-    (PNG_SIZE - qrSide) / 2,
-    PNG_HEADER_HEIGHT,
-    qrSide,
-    qrSide,
-  );
+  ctx.drawImage(qr, (PNG_SIZE - qrSide) / 2, PNG_HEADER_HEIGHT, qrSide, qrSide);
 
   const logo = new Image();
-  logo.src = "/imgs/SSPC.png";
+  logo.src = "/imgs/XV CIPSE logos_vv1.webp";
   await new Promise<void>((resolve) => {
     logo.onload = () => resolve();
     logo.onerror = () => resolve();

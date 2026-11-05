@@ -54,8 +54,7 @@ export async function GET(
     });
 
     const { contentRange } = object;
-    const hasPartialRange =
-      contentRange.startByte !== null && contentRange.endByte !== null;
+    const hasPartialRange = contentRange !== null;
 
     const headers = new Headers({
       "Content-Type": media.mime,
@@ -64,10 +63,10 @@ export async function GET(
       "Accept-Ranges": "bytes",
     });
 
-    if (hasPartialRange) {
+    if (contentRange) {
       headers.set(
         "Content-Range",
-        `bytes ${contentRange.startByte}-${contentRange.endByte}/${contentRange.contentLength ?? media.sizeBytes}`,
+        `bytes ${contentRange.startByte}-${contentRange.endByte}/${contentRange.totalBytes ?? media.sizeBytes}`,
       );
       headers.set("Content-Length", String(object.contentLength));
     } else {
@@ -80,6 +79,7 @@ export async function GET(
     });
   } catch (error) {
     if (error instanceof MediaStorageNotConfiguredError) {
+      console.error("[multimedia/file]", error.message);
       return new Response(
         "El almacenamiento de multimedia no está configurado.",
         { status: 503 },

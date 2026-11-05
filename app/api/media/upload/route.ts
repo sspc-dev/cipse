@@ -105,6 +105,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     if (error instanceof MediaStorageNotConfiguredError) {
+      console.error("[media/upload]", error.message);
       return jsonError(
         "El almacenamiento OCI no está configurado. No se subió el archivo.",
         503,

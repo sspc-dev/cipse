@@ -80,7 +80,7 @@ async function CredentialPrintContent({
           alt=""
           aria-hidden="true"
           height={120}
-          src="/imgs/SSPC.png"
+          src="/imgs/XV CIPSE logos_vv1.webp"
           width={120}
           className="mx-auto h-12 w-auto"
         />

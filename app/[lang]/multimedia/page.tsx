@@ -4,15 +4,16 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Skeleton } from "@heroui/react";
-import { listEventMedia } from "@/lib/features/media/datasource";
+import { listEventMediaWithKeys } from "@/lib/features/media/datasource";
+import {
+  isMediaStorageConfigured,
+  listBucketObjects,
+} from "@/lib/features/media/storage";
+import type { MediaItem } from "@/lib/features/media/types";
 import { toMediaViewItem } from "@/lib/features/media/taxonomy";
 import { MultimediaGallery } from "@/lib/features/media/components/multimedia-gallery";
 import { MultimediaHero } from "@/lib/features/media/components/multimedia-hero";
-import {
-  getDictionary,
-  hasLocale,
-  localizedPath,
-} from "@/lib/i18n";
+import { getDictionary, hasLocale, localizedPath } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export async function generateMetadata(
@@ -54,7 +55,7 @@ export default async function MultimediaPage(
                 alt={dictionary.register.sealAlt}
                 className="h-11 w-auto"
                 height={120}
-                src="/imgs/SSPC.png"
+                src="/imgs/XV CIPSE logos_vv1.webp"
                 width={120}
               />
               <div>
@@ -121,7 +122,7 @@ async function MultimediaContent({
   dictionary: ReturnType<typeof getDictionary>;
 }) {
   await connection();
-  const media = await listEventMedia();
+  const media = await listPublishedMedia();
   const items = media.map(toMediaViewItem);
 
   return (
@@ -130,4 +131,30 @@ async function MultimediaContent({
       <MultimediaGallery copy={dictionary.media} items={items} />
     </>
   );
+}
+
+/**
+ * Material publicado: registros de `event_media` cuyo objeto exista en el
+ * bucket. Si OCI no está configurado o la consulta falla, se conserva la
+ * lista completa de registros (comportamiento histórico) en lugar de
+ * vaciar la galería.
+ */
+async function listPublishedMedia(): Promise<MediaItem[]> {
+  const registered = await listEventMediaWithKeys();
+
+  if (!isMediaStorageConfigured()) {
+    return registered;
+  }
+
+  try {
+    const objects = await listBucketObjects("multimedia/");
+    const present = new Set(objects.map((object) => object.name));
+    return registered.filter((item) => present.has(item.objectKey));
+  } catch (error) {
+    console.error(
+      "[multimedia] No se pudo verificar el bucket; se usan los registros:",
+      error,
+    );
+    return registered;
+  }
 }

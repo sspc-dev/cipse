@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/features/auth/actions";
-import { listEventMedia } from "@/lib/features/media/datasource";
+import { listEventMediaWithKeys } from "@/lib/features/media/datasource";
 import { MULTIMEDIA_DAYS } from "@/lib/features/media/days";
 import {
   formatMediaSize,
@@ -14,7 +14,14 @@ import {
   mediaFormatTag,
   totalMediaBytes,
 } from "@/lib/features/media/taxonomy";
-import { isMediaStorageConfigured } from "@/lib/features/media/storage";
+import {
+  isMediaStorageConfigured,
+  listBucketObjects,
+} from "@/lib/features/media/storage";
+import {
+  reconcileMediaInventory,
+  type MediaInventory,
+} from "@/lib/features/media/inventory";
 import type { MediaItem } from "@/lib/features/media/types";
 import { CONGRESS_TIME_ZONE } from "@/lib/constants";
 import {
@@ -26,6 +33,7 @@ import {
 import Link from "next/link";
 import { AdminShell } from "../admin-shell";
 import { AdminHeader } from "../admin-header";
+import { BucketInventory } from "./bucket-inventory";
 import { MediaDeleteButton } from "./media-delete-button";
 import { MediaMetaEdit } from "./media-meta-edit";
 import { MediaUploadQueue } from "./media-upload-queue";
@@ -177,8 +185,26 @@ async function MediaContent() {
     redirect("/admin");
   }
 
-  const media = await listEventMedia();
+  const media = await listEventMediaWithKeys();
   const storageConfigured = isMediaStorageConfigured();
+
+  let inventory: MediaInventory | null = null;
+
+  if (storageConfigured) {
+    try {
+      const bucketObjects = await listBucketObjects("multimedia/");
+      inventory = reconcileMediaInventory(bucketObjects, media);
+    } catch (error) {
+      console.error(
+        "[admin/multimedia] No se pudo leer el inventario del bucket:",
+        error,
+      );
+    }
+  }
+
+  const bucketTotal = inventory
+    ? inventory.registered.length + inventory.orphans.length
+    : null;
 
   return (
     <>
@@ -199,7 +225,7 @@ async function MediaContent() {
             </p>
           </div>
 
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               label="Archivos publicados"
               value={media.length.toLocaleString("es-MX")}
@@ -212,6 +238,14 @@ async function MediaContent() {
             <StatCard
               label="Tamaño total"
               value={formatMediaSize(totalMediaBytes(media))}
+            />
+            <StatCard
+              label="Objetos en bucket"
+              value={
+                bucketTotal === null
+                  ? "—"
+                  : bucketTotal.toLocaleString("es-MX")
+              }
             />
           </dl>
 
@@ -251,6 +285,19 @@ async function MediaContent() {
               </div>
             );
           })}
+        </section>
+
+        <section
+          aria-label="Contenido del bucket"
+          className="mt-8 flex flex-col gap-3"
+        >
+          <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            Contenido del bucket
+          </h2>
+          <BucketInventory
+            inventory={inventory}
+            storageConfigured={storageConfigured}
+          />
         </section>
       </div>
     </>

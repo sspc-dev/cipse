@@ -80,6 +80,10 @@ export default async function RegisterPage(
             </div>
 
             <p className="reveal max-w-xl font-display text-4xl font-bold leading-[1.05] tracking-tight text-white [animation-delay:400ms] xl:text-5xl">
+              <b className="drop-shadow-lg drop-shadow-gold/70 text-gold font-extrabold text-7xl">
+                {" "}
+                XV{" "}
+              </b>
               {copy.heroTitle}
             </p>
           </div>
@@ -122,7 +126,7 @@ export default async function RegisterPage(
                 <div className="p-6 sm:p-8">
                   <div className="reveal flex items-center gap-2">
                     <Image
-                      src="/imgs/SSPC.png"
+                      src="/imgs/XV CIPSE logos_vv1.webp"
                       alt={copy.sealAlt}
                       width={120}
                       height={120}

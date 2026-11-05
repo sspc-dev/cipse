@@ -11,12 +11,15 @@
 #
 # Fuente única de configuración: el .env de la raíz del repo alimenta la app
 # (env_file) y la base de datos (env_file + valores por defecto seguros).
+# `--env-file .env` hace además que Compose use ese archivo para interpolar
+# variables del propio compose (p. ej. OCI_PEM_HOST_PATH): sin esa bandera
+# Compose solo mira deploy/.env, que no existe.
 #
-# Uso:
-#   docker compose -f deploy/docker-compose.yml up -d --build
+# Uso (desde la raíz del repo):
+#   docker compose --env-file .env -f deploy/docker-compose.yml up -d --build
 #
 # Alta del primer acreditador (credenciales desde el env del contenedor):
-#   docker compose -f deploy/docker-compose.yml run --rm app \
+#   docker compose --env-file .env -f deploy/docker-compose.yml run --rm app \
 #     node scripts/create-admin.mjs
 #
 # Volumen ya inicializado con versiones anteriores: ejecutar a mano la
@@ -76,6 +79,14 @@ services:
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: "3306"
+      # El PEM de OCI vive en el host y se monta abajo (read-only); dentro
+      # del contenedor se sobrescribe la ruta del env_file.
+      OCI_PRIVATE_KEY: /run/secrets/oci/key.pem
+    volumes:
+      # OCI_PEM_HOST_PATH se define en el .env de la raíz (apunta al PEM
+      # descargado de OCI, fuera del repo). Read-only: el proceso del
+      # servidor solo lo lee para firmar peticiones.
+      - ${OCI_PEM_HOST_PATH:?Defina OCI_PEM_HOST_PATH con la ruta del PEM de OCI en el host}:/run/secrets/oci/key.pem:ro
     depends_on:
       db:
         condition: service_healthy

@@ -27,6 +27,9 @@
 
 :root {
   --gold-ink: #c59b27;
+
+  --texture-image: url("/imgs/texture.png");
+  --texture-opacity: 0.07;
 }
 
 /*
@@ -79,6 +82,13 @@
 
   --radius: 0.75rem;
   --field-radius: 0.75rem;
+
+  /*
+   * Trama institucional del fondo. En oscuro los giros guinda se recolorean
+   * a verde táctico para conservar contraste sobre el fondo casi negro.
+   */
+  --texture-image: url("/imgs/texture-green.png");
+  --texture-opacity: 0.14;
 }
 
 /*
@@ -130,12 +140,44 @@
   --field-radius: 0.75rem;
 
   --gold-ink: #8a6d14;
+
+  --texture-image: url("/imgs/texture.png");
+  --texture-opacity: 0.07;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/*
+ * Trama decorativa del fondo del sitio: patrón repetido con opacidad baja y
+ * máscara de degradado que lo disuelve hacia la parte inferior. Se pinta
+ * sobre el fondo del canvas y por debajo de todo el contenido.
+ */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: var(--texture-image);
+  background-size: 480px 480px;
+  background-repeat: repeat;
+  opacity: var(--texture-opacity);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    transparent 85%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 45%,
+    transparent 85%
+  );
 }
 
 /*

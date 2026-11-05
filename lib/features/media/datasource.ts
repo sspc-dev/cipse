@@ -44,6 +44,23 @@ export async function listEventMedia(): Promise<MediaItem[]> {
 
 export type EventMediaWithKey = MediaItem & { objectKey: string };
 
+export async function listEventMediaWithKeys(): Promise<
+  EventMediaWithKey[]
+> {
+  const rows = await withConnection(async (connection) => {
+    const [result] = await connection.query<EventMediaWithKeyRow[]>(
+      `SELECT id, day, kind, title, original_name, mime, size_bytes, created_at,
+              object_key
+       FROM event_media
+       ORDER BY day ASC, created_at DESC, id DESC`,
+    );
+
+    return result;
+  });
+
+  return rows.map((row) => ({ ...mapRow(row), objectKey: row.object_key }));
+}
+
 export async function findEventMediaById(
   id: number,
 ): Promise<EventMediaWithKey | null> {
