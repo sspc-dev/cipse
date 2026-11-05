@@ -91,6 +91,10 @@ export default async function RegisterPage(
 
         <section className="relative flex min-h-screen flex-col bg-background dark:bg-[#070b11] lg:border-l lg:border-border">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_55%_at_50%_0%,rgba(29,75,68,0.2),transparent_70%)]" />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-3/5 bg-[url('/imgs/texture.png')] bg-position-center bg-no-repeat grayscale  dark:filter-none opacity-[0.1] bg-size-[960px] mask-[radial-gradient(ellipse_120%_100%_at_100%_30%,black_0%,rgba(0,0,0,0.9)_45%,transparent_75%)] dark:bg-[url('/imgs/texture-green.png')] dark:opacity-[0.14]"
+          />
 
           <div className="relative z-10 lg:hidden">
             <div className="relative h-44 w-full overflow-hidden sm:h-52">
