@@ -10,13 +10,16 @@ import {
   type RegisterSchema,
 } from "@/lib/features/register/schema";
 import { registerAccreditation } from "@/lib/features/register/actions";
-import {
-  formatMessage,
-  type Dictionary,
-  type Locale,
-} from "@/lib/i18n";
+import { formatMessage, type Dictionary, type Locale } from "@/lib/i18n";
 import { CountryField } from "./country-field";
-import { AlertCircleIcon, IdCardIcon, MailIcon } from "@/components/icons";
+import {
+  AlertCircleIcon,
+  BriefcaseIcon,
+  BuildingIcon,
+  IdCardIcon,
+  MailIcon,
+  PhoneIcon,
+} from "@/components/icons";
 import { TextFieldControl } from "./register-field";
 import { folioLabel, type CredentialData } from "./register-success";
 
@@ -53,6 +56,9 @@ export function RegisterForm({
       name: "",
       lastname: "",
       country: "",
+      institution: "",
+      position: "",
+      phone: "",
       email: "",
     },
   });
@@ -97,13 +103,13 @@ export function RegisterForm({
   return (
     <Form
       aria-label={copy.formAriaLabel}
-      className="flex flex-col gap-6"
+      className="flex flex-col gap-8"
       onSubmit={onSubmit}
       validationBehavior="aria"
     >
       {formError ? (
         <div
-          className="flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/10 px-3.5 py-3"
+          className="flex items-start gap-2.5 rounded-xl border border-danger/30 bg-danger/10 px-4 py-3.5"
           role="alert"
         >
           <AlertCircleIcon className="mt-0.5 size-4 shrink-0 text-danger" />
@@ -111,8 +117,8 @@ export function RegisterForm({
         </div>
       ) : null}
 
-      <section className="flex flex-col gap-5">
-        <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-7">
+        <div className="flex flex-col gap-4">
           <h3 className={groupHeadingClass}>{copy.personalData}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <TextFieldControl
@@ -135,7 +141,30 @@ export function RegisterForm({
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
+          <h3 className={groupHeadingClass}>{copy.institutionalData}</h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <TextFieldControl
+              autoComplete="organization-title"
+              control={control}
+              icon={<BriefcaseIcon className="size-4" />}
+              label={copy.positionLabel}
+              name="position"
+              placeholder={copy.positionPlaceholder}
+            />
+
+            <TextFieldControl
+              autoComplete="organization"
+              control={control}
+              icon={<BuildingIcon className="size-4" />}
+              label={copy.institutionLabel}
+              name="institution"
+              placeholder={copy.institutionPlaceholder}
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4">
           <h3 className={groupHeadingClass}>{copy.contactHeading}</h3>
           <div className="grid gap-4 sm:grid-cols-2">
             <CountryField
@@ -154,13 +183,23 @@ export function RegisterForm({
               placeholder={copy.emailPlaceholder}
               type="email"
             />
+            <TextFieldControl
+              autoComplete="tel"
+              control={control}
+              icon={<PhoneIcon className="size-4" />}
+              isRequired={false}
+              label={copy.phoneLabel}
+              name="phone"
+              placeholder={copy.phonePlaceholder}
+              type="tel"
+            />
           </div>
         </div>
       </section>
 
       <div className="flex flex-col gap-3">
         <Button
-          className="h-12 rounded-full text-sm font-semibold shadow-lg shadow-black/10 transition-transform hover:-translate-y-0.5 dark:shadow-black/40"
+          className="h-12 rounded-full text-sm font-semibold shadow-lg shadow-black/10 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-black/15 focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2 dark:shadow-black/40"
           fullWidth
           isDisabled={isSubmitting}
           isPending={isSubmitting}

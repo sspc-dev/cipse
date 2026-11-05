@@ -9,12 +9,20 @@ import {
   setAdminUserActiveAction,
   updateAdminUserAction,
 } from "@/lib/features/users/actions";
+import {
+  CheckIcon,
+  ClockIcon,
+  KeyIcon,
+  PencilIcon,
+  ShieldIcon,
+  XIcon,
+} from "@/components/icons";
 
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80";
 
 const actionButtonClass =
-  "rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground disabled:opacity-60";
+  "inline-flex h-9 items-center gap-1.5 rounded-full border border-border px-3.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-1 disabled:opacity-50";
 
 type Mode = "idle" | "edit" | "password";
 
@@ -29,6 +37,7 @@ function initials(name: string): string {
 const AVATAR_TONES = [
   "border-tactical/40 bg-tactical/15 text-accent-soft-foreground",
   "border-gold/35 bg-gold/10 text-gold-ink",
+  "border-guinda/30 bg-guinda/10 text-guinda",
   "border-border bg-foreground/5 text-muted",
 ] as const;
 
@@ -125,51 +134,63 @@ export function UserRow({
   }
 
   return (
-    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 transition-colors hover:border-accent/50">
+    <li className="reveal glass flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-4 shadow-sm transition-colors hover:border-accent/50 dark:border-white/10">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-3">
+        <div className="flex min-w-0 items-start gap-3.5">
+          {/* Avatar */}
           <span
             aria-hidden="true"
-            className={`flex size-11 shrink-0 items-center justify-center rounded-full border font-display text-sm font-bold tracking-tight ${
+            className={`flex size-13 shrink-0 items-center justify-center rounded-full border font-display text-sm font-bold tracking-tight ${
               AVATAR_TONES[id % AVATAR_TONES.length]
             }`}
           >
             {initials(name)}
           </span>
-          <div className="flex min-w-0 flex-col gap-0.5">
+
+          {/* Info principal */}
+          <div className="flex min-w-0 flex-col gap-1">
             <div className="flex flex-wrap items-center gap-2">
-              <p className="truncate text-sm font-semibold text-foreground">
-                {name}
-              </p>
+              <p className="text-sm font-semibold text-foreground">{name}</p>
+
+              {/* Badge de estado */}
               <span
                 className={
                   isActive
-                    ? "inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
+                    ? "inline-flex items-center gap-1.5 rounded-full border border-accent/40 bg-accent-soft px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-accent-soft-foreground"
                     : "inline-flex items-center gap-1.5 rounded-full border border-danger/30 bg-danger/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-danger"
                 }
               >
-                <span
-                  aria-hidden="true"
-                  className="size-1.5 rounded-full bg-current"
-                />
+                {isActive ? (
+                  <CheckIcon className="size-3" aria-hidden="true" />
+                ) : (
+                  <XIcon className="size-3" aria-hidden="true" />
+                )}
                 {isActive ? "Activo" : "Inactivo"}
               </span>
+
+              {/* Badge de usuario actual */}
               {isCurrentUser ? (
-                <span className="inline-flex items-center rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink">
+                <span className="inline-flex items-center gap-1 rounded-full border border-gold/30 bg-gold/10 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-gold-ink">
+                  <ShieldIcon className="size-3" aria-hidden="true" />
                   Su cuenta
                 </span>
               ) : null}
             </div>
+
             <p className="truncate text-xs text-muted">{email}</p>
-            <p className="text-[10px] uppercase tracking-[0.12em] text-muted/70">
+
+            <p className="inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.12em] text-muted/70">
+              <ClockIcon className="size-3" aria-hidden="true" />
               Alta: {createdAtLabel}
             </p>
           </div>
         </div>
 
+        {/* Acciones */}
         {mode === "idle" ? (
           <div className="flex flex-wrap items-center gap-2">
             <button
+              aria-label={`Editar usuario ${name}`}
               className={actionButtonClass}
               onClick={() => {
                 setMode("edit");
@@ -177,9 +198,11 @@ export function UserRow({
               }}
               type="button"
             >
+              <PencilIcon className="size-3.5" aria-hidden="true" />
               Editar
             </button>
             <button
+              aria-label={`Cambiar contraseña de ${name}`}
               className={actionButtonClass}
               onClick={() => {
                 setMode("password");
@@ -187,10 +210,20 @@ export function UserRow({
               }}
               type="button"
             >
+              <KeyIcon className="size-3.5" aria-hidden="true" />
               Contraseña
             </button>
             <button
-              className={actionButtonClass}
+              aria-label={
+                isActive
+                  ? `Desactivar usuario ${name}`
+                  : `Activar usuario ${name}`
+              }
+              className={
+                isActive
+                  ? `${actionButtonClass} hover:border-danger/60 hover:text-danger`
+                  : `${actionButtonClass} hover:border-accent hover:text-accent-soft-foreground`
+              }
               disabled={isPending || (isCurrentUser && isActive)}
               onClick={() => void toggleActive()}
               title={
@@ -200,14 +233,28 @@ export function UserRow({
               }
               type="button"
             >
-              {isActive ? "Desactivar" : "Activar"}
+              {isActive ? (
+                <>
+                  <XIcon className="size-3.5" aria-hidden="true" />
+                  Desactivar
+                </>
+              ) : (
+                <>
+                  <CheckIcon className="size-3.5" aria-hidden="true" />
+                  Activar
+                </>
+              )}
             </button>
           </div>
         ) : null}
       </div>
 
+      {/* Modo edición */}
       {mode === "edit" ? (
-        <form className="flex flex-col gap-3 border-t border-border/60 pt-3" onSubmit={saveDetails}>
+        <form
+          className="flex flex-col gap-3 border-t border-border/60 pt-3"
+          onSubmit={saveDetails}
+        >
           <div className="grid gap-3 sm:grid-cols-2">
             <TextField
               isRequired
@@ -218,7 +265,7 @@ export function UserRow({
               <Label className={labelClass}>Nombre</Label>
               <Input
                 aria-required
-                className="mt-1.5 py-2.5 text-sm"
+                className="mt-1.5 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
                 placeholder="Nombre completo"
               />
             </TextField>
@@ -231,7 +278,7 @@ export function UserRow({
               <Label className={labelClass}>Correo institucional</Label>
               <Input
                 aria-required
-                className="mt-1.5 py-2.5 text-sm"
+                className="mt-1.5 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
                 placeholder="acreditador@gob.mx"
                 type="email"
               />
@@ -245,6 +292,7 @@ export function UserRow({
         </form>
       ) : null}
 
+      {/* Modo contraseña */}
       {mode === "password" ? (
         <form
           className="flex flex-col gap-3 border-t border-border/60 pt-3"
@@ -260,7 +308,7 @@ export function UserRow({
             <Input
               aria-required
               autoComplete="new-password"
-              className="mt-1.5 py-2.5 text-sm"
+              className="mt-1.5 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
               placeholder="Mínimo 8 caracteres"
               type="password"
             />
@@ -274,7 +322,12 @@ export function UserRow({
       ) : null}
 
       {error ? (
-        <p aria-live="assertive" className="text-xs font-medium text-danger" role="alert">
+        <p
+          aria-live="assertive"
+          className="flex items-center gap-2 text-xs font-medium text-danger"
+          role="alert"
+        >
+          <XIcon className="size-3.5" aria-hidden="true" />
           {error}
         </p>
       ) : null}
@@ -294,14 +347,14 @@ function RowFormActions({
   return (
     <div className="flex items-center justify-end gap-2">
       <button
-        className={actionButtonClass}
+        className={`${actionButtonClass} hover:border-danger/60 hover:text-danger`}
         onClick={onCancel}
         type="button"
       >
         Cancelar
       </button>
       <Button
-        className="h-8 rounded-full px-3.5 text-[11px] font-semibold"
+        className="h-9 rounded-full px-4 text-[11px] font-semibold focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
         isDisabled={isPending}
         isPending={isPending}
         type="submit"

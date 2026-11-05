@@ -78,6 +78,7 @@
   --field-border: rgba(255, 255, 255, 0.12);
   --field-border-width: 1px;
   --field-border-hover: rgba(255, 255, 255, 0.22);
+  --focus: rgba(197, 155, 39, 0.6);
 
 
   --radius: 0.75rem;
@@ -135,6 +136,7 @@
   --field-border: rgba(16, 24, 29, 0.14);
   --field-border-width: 1px;
   --field-border-hover: rgba(16, 24, 29, 0.26);
+  --focus: rgba(138, 109, 20, 0.55);
 
   --radius: 0.75rem;
   --field-radius: 0.75rem;

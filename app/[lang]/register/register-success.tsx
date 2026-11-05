@@ -43,14 +43,14 @@ export function QrCredentialCard({
         >
           {copy.heading}
         </h2>
-        <p className="mx-auto max-w-sm text-sm leading-relaxed text-muted">
+        <p className="mx-auto max-w-md text-sm leading-relaxed text-muted sm:text-[15px]">
           {copy.description}
         </p>
       </div>
 
       <QrVisual altTemplate={copy.qrAlt} credential={credential} />
 
-      <dl className="flex w-full flex-col gap-1.5 rounded-xl border border-border bg-foreground/3 px-4 py-3.5 text-left">
+      <dl className="flex w-full flex-col gap-2 rounded-xl border border-border bg-foreground/3 px-4 py-4 text-left">
         <div className="flex items-center justify-between gap-3">
           <dt className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted/70">
             {copy.delegate}
@@ -86,7 +86,7 @@ export function QrCredentialCard({
 
       <div className="flex w-full flex-col gap-2 sm:flex-row">
         <Button
-          className="h-11 rounded-full text-sm font-semibold"
+          className="h-11 rounded-full text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
           onPress={() =>
             void saveCredentialPng(
               credential,

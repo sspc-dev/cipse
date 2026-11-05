@@ -122,12 +122,12 @@ export default async function RegisterPage(
             </div>
           </div>
 
-          <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:px-12">
-            <div className="w-full max-w-xl">
+          <div className="relative z-10 flex flex-1 items-center justify-center px-4 py-10 sm:px-8 lg:px-12 xl:px-16">
+            <div className="w-full max-w-2xl xl:max-w-3xl">
               <div className="card-enter overflow-hidden rounded-[22px] border border-border bg-surface/85 shadow-[0_30px_80px_-30px_rgba(16,24,29,0.35)] backdrop-blur-xl dark:shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)]">
                 <div className="strip-shine relative h-1 w-full bg-linear-to-r from-tactical via-white to-guinda" />
 
-                <div className="p-6 sm:p-8">
+                <div className="p-6 sm:p-8 lg:p-10">
                   <div className="reveal flex items-center gap-2">
                     <Image
                       src="/imgs/XV CIPSE logos_vv1.webp"
@@ -140,12 +140,12 @@ export default async function RegisterPage(
                       <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-ink/90">
                         {copy.badge}
                       </p>
-                      <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:text-[28px]">
-                        {copy.heading}
-                      </h1>
-                      <p className="mt-1.5 text-sm leading-relaxed text-muted">
-                        {copy.subheading}
-                      </p>
+              <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl lg:text-[32px]">
+                {copy.heading}
+              </h1>
+              <p className="mt-2 text-sm leading-relaxed text-muted sm:text-[15px]">
+                {copy.subheading}
+              </p>
                     </div>
                   </div>
 
@@ -159,7 +159,7 @@ export default async function RegisterPage(
             </div>
           </div>
 
-          <footer className="reveal relative z-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 px-5 py-5 text-[11px] text-muted/60 [animation-delay:500ms] sm:flex-row sm:px-8 lg:px-12">
+          <footer className="reveal relative z-10 flex flex-col items-center justify-between gap-3 border-t border-border/60 px-5 py-5 text-[11px] text-muted/60 [animation-delay:500ms] sm:flex-row sm:px-8 lg:px-12 xl:px-16">
             <span className="inline-flex items-center gap-2">
               {copy.orgLine}
             </span>

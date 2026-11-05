@@ -5,37 +5,20 @@ import { getAdminSession } from "@/lib/features/auth/actions";
 import { listEventMediaWithKeys } from "@/lib/features/media/datasource";
 import { MULTIMEDIA_DAYS } from "@/lib/features/media/days";
 import {
-  formatMediaSize,
-  MEDIA_KIND_LABELS,
-  mediaFileUrl,
-} from "@/lib/features/media/format";
-import {
   countDaysWithMedia,
-  mediaFormatTag,
   totalMediaBytes,
 } from "@/lib/features/media/taxonomy";
-import {
-  isMediaStorageConfigured,
-  listBucketObjects,
-} from "@/lib/features/media/storage";
-import {
-  reconcileMediaInventory,
-  type MediaInventory,
-} from "@/lib/features/media/inventory";
-import type { MediaItem } from "@/lib/features/media/types";
-import { CONGRESS_TIME_ZONE } from "@/lib/constants";
+import { formatMediaSize } from "@/lib/features/media/format";
+import { isMediaStorageConfigured } from "@/lib/features/media/storage";
 import {
   CalendarIcon,
-  FileTextIcon,
   ImageIcon,
   VideoIcon,
 } from "@/components/icons";
 import Link from "next/link";
 import { AdminShell } from "../admin-shell";
 import { AdminHeader } from "../admin-header";
-import { BucketInventory } from "./bucket-inventory";
-import { MediaDeleteButton } from "./media-delete-button";
-import { MediaMetaEdit } from "./media-meta-edit";
+import { MediaDayFilter } from "./media-day-filter";
 import { MediaUploadQueue } from "./media-upload-queue";
 
 export const metadata: Metadata = {
@@ -43,12 +26,6 @@ export const metadata: Metadata = {
   description: "Carga y administración del material multimedia del CIPSE XV.",
   robots: { index: false, follow: false },
 };
-
-const dateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
-  dateStyle: "short",
-  timeStyle: "short",
-  timeZone: CONGRESS_TIME_ZONE,
-});
 
 export default function AdminMediaPage() {
   return (
@@ -62,119 +39,68 @@ export default function AdminMediaPage() {
 
 function MediaSkeleton() {
   return (
-    <div className="relative z-10 mx-auto max-w-5xl px-5 py-10 sm:px-8 lg:px-12">
-      <div className="mb-8 h-24 animate-pulse rounded-2xl bg-foreground/5" />
-      <div className="mb-6 h-48 animate-pulse rounded-2xl bg-foreground/5" />
-      <div className="h-56 animate-pulse rounded-2xl bg-foreground/5" />
+    <div className="relative z-10 mx-auto w-full max-w-[1760px] px-5 py-12 sm:px-8 lg:px-12 xl:px-14">
+      <div className="mb-8 h-20 animate-pulse rounded-md bg-surface/40" />
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="h-28 animate-pulse rounded-md bg-surface/40" />
+        <div className="h-28 animate-pulse rounded-md bg-surface/40" />
+        <div className="h-28 animate-pulse rounded-md bg-surface/40" />
+      </div>
+      <div className="mb-4 h-48 animate-pulse rounded-md bg-surface/40" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+        <div className="aspect-square animate-pulse rounded-md bg-surface/40" />
+        <div className="aspect-square animate-pulse rounded-md bg-surface/40" />
+        <div className="aspect-square animate-pulse rounded-md bg-surface/40" />
+        <div className="aspect-square animate-pulse rounded-md bg-surface/40" />
+      </div>
     </div>
   );
-}
-
-function KindIcon({ kind }: { kind: MediaItem["kind"] }) {
-  if (kind === "image") return <ImageIcon className="size-4" aria-hidden="true" />;
-  if (kind === "video") return <VideoIcon className="size-4" aria-hidden="true" />;
-  return <FileTextIcon className="size-4" aria-hidden="true" />;
 }
 
 function StatCard({
   icon,
   label,
   value,
+  hint,
 }: {
   icon?: React.ReactNode;
   label: string;
   value: string;
+  hint?: string;
 }) {
   return (
-    <div className="glass-soft rounded-xl border border-border/70 px-4 py-3">
-      <dt className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-        {icon}
-        {label}
-      </dt>
-      <dd className="mt-1 font-mono text-lg font-bold text-foreground">
-        {value}
-      </dd>
-    </div>
-  );
-}
+    <div className="group relative overflow-hidden rounded-md border border-border/60 bg-surface/50 px-5 py-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-tactical/50 hover:shadow-[0_8px_32px_rgba(29,75,68,0.18)]">
+      {/* Barra de acento superior */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-tactical/60 via-tactical to-tactical/60 opacity-60 transition-opacity duration-300 group-hover:opacity-100"
+      />
+      {/* Brillo sutil en hover */}
+      <span
+        aria-hidden="true"
+        className="absolute -right-6 -top-6 size-20 rounded-full bg-tactical/5 opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+      />
 
-function MediaAdminItem({ item }: { item: MediaItem }) {
-  return (
-    <li className="glass-soft flex flex-col gap-3 rounded-xl border border-border/70 px-4 py-3.5 transition-colors hover:border-accent/50 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex min-w-0 items-center gap-3">
-        {item.kind === "image" ? (
-          /* Archivo servido por route handler; no pasa por optimización. */
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            alt=""
-            aria-hidden="true"
-            className="size-14 shrink-0 rounded-lg border border-border object-cover"
-            loading="lazy"
-            src={mediaFileUrl(item.id)}
-          />
-        ) : item.kind === "video" ? (
-          <span className="relative flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-foreground/5">
-            <video
-              preload="metadata"
-              src={`${mediaFileUrl(item.id)}#t=0.1`}
-              className="size-full object-cover"
-              aria-hidden="true"
-              muted
-              playsInline
-            />
-            <VideoPlayBadge />
-          </span>
-        ) : (
-          <span className="flex size-14 shrink-0 items-center justify-center rounded-lg border border-border bg-foreground/5 text-muted">
-            <KindIcon kind={item.kind} />
-          </span>
-        )}
-
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <p className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <span className="truncate">{item.title}</span>
-            <span className="inline-flex shrink-0 items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 font-mono text-[9px] font-bold tracking-wider text-muted normal-case">
-              {mediaFormatTag(item)}
-            </span>
-          </p>
-          <p className="truncate text-[11px] text-muted">
-            {MEDIA_KIND_LABELS[item.kind]} · {formatMediaSize(item.sizeBytes)} ·{" "}
-            {dateTimeFormatter.format(item.createdAt)}
-          </p>
-          <p className="truncate text-[10px] text-muted/70">
-            {item.originalName}
-          </p>
+      <div className="relative flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-1">
+          <dt className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            {label}
+          </dt>
+          <dd className="font-mono text-3xl font-bold leading-none tracking-tight text-foreground">
+            {value}
+          </dd>
+          {hint ? (
+            <p className="text-[10px] leading-relaxed text-muted/70">{hint}</p>
+          ) : null}
         </div>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <a
-          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-foreground transition-colors hover:border-accent hover:text-accent-soft-foreground"
-          href={mediaFileUrl(item.id)}
-          rel="noreferrer"
-          target="_blank"
-        >
-          Abrir
-        </a>
-        <MediaMetaEdit
-          day={item.day}
-          fileName={item.originalName}
-          id={item.id}
-          title={item.title}
-        />
-        <MediaDeleteButton id={item.id} title={item.title} />
+        {icon ? (
+          <span className="flex size-11 shrink-0 items-center justify-center rounded-md border border-tactical/30 bg-tactical/10 text-tactical-bright transition-all duration-300 group-hover:bg-tactical/20 group-hover:shadow-[0_2px_12px_rgba(29,75,68,0.25)]">
+            {icon}
+          </span>
+        ) : null}
       </div>
-    </li>
-  );
-}
-
-function VideoPlayBadge() {
-  return (
-    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/20">
-      <span className="flex size-6 items-center justify-center rounded-full bg-black/60 text-white">
-        <VideoIcon aria-hidden="true" className="size-3" />
-      </span>
-    </span>
+    </div>
   );
 }
 
@@ -188,116 +114,63 @@ async function MediaContent() {
   const media = await listEventMediaWithKeys();
   const storageConfigured = isMediaStorageConfigured();
 
-  let inventory: MediaInventory | null = null;
-
-  if (storageConfigured) {
-    try {
-      const bucketObjects = await listBucketObjects("multimedia/");
-      inventory = reconcileMediaInventory(bucketObjects, media);
-    } catch (error) {
-      console.error(
-        "[admin/multimedia] No se pudo leer el inventario del bucket:",
-        error,
-      );
-    }
-  }
-
-  const bucketTotal = inventory
-    ? inventory.registered.length + inventory.orphans.length
-    : null;
-
   return (
     <>
       <AdminHeader admin={admin} active="multimedia" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-12">
-        <section className="mb-8 flex flex-col gap-3">
-          <div>
-            <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+      <div className="relative z-10 mx-auto w-full max-w-[1760px] px-5 py-10 sm:px-8 lg:px-12 xl:px-14">
+        {/* Encabezado principal */}
+        <section className="mb-6">
+          <div className="flex flex-col gap-1.5">
+            <h2 className="flex items-center gap-3 font-display text-2xl font-bold tracking-tight text-foreground">
+              <span className="flex size-9 items-center justify-center rounded-md border border-tactical/30 bg-tactical/10 text-tactical-bright">
+                <ImageIcon className="size-4.5" aria-hidden="true" />
+              </span>
               Multimedia del evento
             </h2>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
+            <p className="max-w-2xl text-xs leading-relaxed text-muted">
               El material publicado aparece en la galería pública{" "}
-              <Link className="font-semibold text-accent-soft-foreground underline-offset-2 hover:underline" href="/es/multimedia">
+              <Link
+                className="font-semibold text-accent-soft-foreground underline-offset-2 transition-colors hover:text-tactical-bright hover:underline"
+                href="/es/multimedia"
+              >
                 /es/multimedia
               </Link>
               , organizado por día.
             </p>
           </div>
-
-          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <StatCard
-              label="Archivos publicados"
-              value={media.length.toLocaleString("es-MX")}
-            />
-            <StatCard
-              icon={<CalendarIcon className="size-3.5" />}
-              label="Días con material"
-              value={`${countDaysWithMedia(media)} de ${MULTIMEDIA_DAYS.length}`}
-            />
-            <StatCard
-              label="Tamaño total"
-              value={formatMediaSize(totalMediaBytes(media))}
-            />
-            <StatCard
-              label="Objetos en bucket"
-              value={
-                bucketTotal === null
-                  ? "—"
-                  : bucketTotal.toLocaleString("es-MX")
-              }
-            />
-          </dl>
-
-          <MediaUploadQueue storageConfigured={storageConfigured} />
         </section>
 
-        <section aria-label="Material por día" className="flex flex-col gap-6">
-          {MULTIMEDIA_DAYS.map((day) => {
-            const items = media.filter((item) => item.day === day.value);
-
-            return (
-              <div key={day.value} className="flex flex-col gap-3">
-                <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-                  {day.label}
-                  <span className="inline-flex items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
-                    {items.length}
-                  </span>
-                </h2>
-
-                {items.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-border/70 px-4 py-6 text-center text-xs text-muted">
-                    Sin material publicado para {day.label.toLowerCase()}.{" "}
-                    <Link
-                      className="font-semibold text-accent-soft-foreground underline-offset-2 hover:underline"
-                      href="#cargar-material"
-                    >
-                      Súbelo desde la sección de carga.
-                    </Link>
-                  </p>
-                ) : (
-                  <ul className="flex flex-col gap-2">
-                    {items.map((item) => (
-                      <MediaAdminItem key={item.id} item={item} />
-                    ))}
-                  </ul>
-                )}
-              </div>
-            );
-          })}
-        </section>
-
-        <section
-          aria-label="Contenido del bucket"
-          className="mt-8 flex flex-col gap-3"
-        >
-          <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-            Contenido del bucket
-          </h2>
-          <BucketInventory
-            inventory={inventory}
-            storageConfigured={storageConfigured}
+        {/* Estadísticas */}
+        <dl className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            icon={<ImageIcon className="size-5" />}
+            label="Archivos publicados"
+            value={media.length.toLocaleString("es-MX")}
+            hint="Material disponible en la galería pública"
           />
+          <StatCard
+            icon={<CalendarIcon className="size-5" />}
+            label="Días con material"
+            value={`${countDaysWithMedia(media)} de ${MULTIMEDIA_DAYS.length}`}
+            hint="Días del congreso con archivos subidos"
+          />
+          <StatCard
+            icon={<VideoIcon className="size-5" />}
+            label="Tamaño total"
+            value={formatMediaSize(totalMediaBytes(media))}
+            hint="Espacio ocupado en almacenamiento"
+          />
+        </dl>
+
+        {/* Carga de material */}
+        <div className="mb-10">
+          <MediaUploadQueue storageConfigured={storageConfigured} />
+        </div>
+
+        {/* Material por día — filtro en pestañas */}
+        <section aria-label="Material por día" className="flex flex-col gap-4">
+          <MediaDayFilter media={media} />
         </section>
       </div>
     </>

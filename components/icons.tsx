@@ -60,6 +60,36 @@ export function BuildingIcon(props: IconProps) {
   );
 }
 
+export function BriefcaseIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect height="13" rx="2" width="18" x="3" y="7" />
+      <path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" />
+      <path d="M3 12h18" />
+    </svg>
+  );
+}
+
+export function PhoneIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  );
+}
+
+export function QrCodeIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <rect height="5" rx="1" width="5" x="3" y="3" />
+      <rect height="5" rx="1" width="5" x="16" y="3" />
+      <rect height="5" rx="1" width="5" x="3" y="16" />
+      <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
+      <path d="M21 21v.01M12 7v3a2 2 0 0 1-2 2H7M3 12h.01M12 3h.01M12 16v.01M16 12h1M21 12v.01M12 21v-1" />
+    </svg>
+  );
+}
+
 export function GlobeIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>
@@ -332,6 +362,15 @@ export function PlayIcon(props: IconProps) {
   return (
     <svg {...base} fill="currentColor" stroke="none" {...props}>
       <path d="M8 5.5v13a1 1 0 0 0 1.5.87l10-6.5a1 1 0 0 0 0-1.74l-10-6.5A1 1 0 0 0 8 5.5z" />
+    </svg>
+  );
+}
+
+export function TrendIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3 17 9.5 10.5l4 4L21 7" />
+      <path d="M15 7h6v6" />
     </svg>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createAdminUser } from "@/lib/features/users/actions";
-import { PlusIcon, UsersIcon } from "@/components/icons";
+import { PlusIcon, XIcon } from "@/components/icons";
 
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80";
@@ -40,6 +40,9 @@ export function CreateUserForm() {
     router.refresh();
   }
 
+  const inputClass =
+    "mt-1.5 py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2";
+
   return (
     <form
       aria-label="Crear usuario acreditador"
@@ -51,19 +54,19 @@ export function CreateUserForm() {
           <PlusIcon className="size-4 text-tactical-bright" aria-hidden="true" />
           Nuevo acreditador
         </h2>
-        <p className="mt-1 text-xs text-muted">
+        <p className="mt-1 text-xs leading-relaxed text-muted">
           Las cuentas creadas aquí pueden iniciar sesión en el panel y firmar
           asistencias.
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <TextField isRequired name="name" onChange={setName} value={name}>
           <Label className={labelClass}>Nombre</Label>
           <Input
             aria-required
             autoComplete="name"
-            className="mt-1.5 py-2.5 text-sm"
+            className={inputClass}
             placeholder="Nombre completo"
           />
         </TextField>
@@ -78,7 +81,7 @@ export function CreateUserForm() {
           <Input
             aria-required
             autoComplete="email"
-            className="mt-1.5 py-2.5 text-sm"
+            className={inputClass}
             placeholder="acreditador@gob.mx"
             type="email"
           />
@@ -94,7 +97,7 @@ export function CreateUserForm() {
           <Input
             aria-required
             autoComplete="new-password"
-            className="mt-1.5 py-2.5 text-sm"
+            className={inputClass}
             placeholder="Mínimo 8 caracteres"
             type="password"
           />
@@ -102,14 +105,19 @@ export function CreateUserForm() {
       </div>
 
       {error ? (
-        <p aria-live="assertive" className="text-xs font-medium text-danger" role="alert">
+        <p
+          aria-live="assertive"
+          className="flex items-center gap-2 text-xs font-medium text-danger"
+          role="alert"
+        >
+          <XIcon className="size-3.5" aria-hidden="true" />
           {error}
         </p>
       ) : null}
 
       <div className="flex justify-end">
         <Button
-          className="rounded-full text-sm font-semibold"
+          className="h-10 rounded-full px-5 text-sm font-semibold transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2"
           isDisabled={
             isPending ||
             name.trim().length < 2 ||
@@ -120,7 +128,7 @@ export function CreateUserForm() {
           type="submit"
           variant="primary"
         >
-          <UsersIcon className="size-4" aria-hidden="true" />
+          <PlusIcon className="size-4" aria-hidden="true" />
           Crear usuario
         </Button>
       </div>

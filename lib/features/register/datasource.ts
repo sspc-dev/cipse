@@ -28,9 +28,19 @@ export async function insertAccreditation(
   try {
     return await withConnection(async (connection) => {
       const [result] = await connection.query<ResultSetHeader>(
-        `INSERT INTO accreditations (name, lastname, country, email, access_code)
-         VALUES (?, ?, ?, ?, ?)`,
-        [dto.name, dto.lastname, dto.country, dto.email, accessCode],
+        `INSERT INTO accreditations
+           (name, lastname, country, institution, position, phone, email, access_code)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          dto.name,
+          dto.lastname,
+          dto.country,
+          dto.institution,
+          dto.position,
+          dto.phone,
+          dto.email,
+          accessCode,
+        ],
       );
 
       const id = result.insertId;

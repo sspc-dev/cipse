@@ -34,9 +34,9 @@ export default function AdminUsersPage() {
 
 function UsersSkeleton() {
   return (
-    <div className="relative z-10 mx-auto max-w-5xl px-5 py-10 sm:px-8 lg:px-12">
-      <div className="mb-8 h-24 animate-pulse rounded-2xl bg-foreground/5" />
-      <div className="mb-6 h-40 animate-pulse rounded-2xl bg-foreground/5" />
+    <div className="relative z-10 mx-auto w-full max-w-[1760px] px-5 py-10 sm:px-8 lg:px-12 xl:px-14">
+      <div className="mb-6 h-24 animate-pulse rounded-2xl bg-foreground/5" />
+      <div className="mb-4 h-40 animate-pulse rounded-2xl bg-foreground/5" />
       <div className="h-56 animate-pulse rounded-2xl bg-foreground/5" />
     </div>
   );
@@ -55,13 +55,14 @@ async function UsersContent() {
     <>
       <AdminHeader admin={admin} active="usuarios" />
 
-      <div className="relative z-10 mx-auto max-w-5xl px-5 py-8 sm:px-8 lg:px-12">
-        <section className="mb-8 flex flex-col gap-3">
+      <div className="relative z-10 mx-auto w-full max-w-[1760px] px-5 py-8 sm:px-8 lg:px-12 xl:px-14">
+        <section className="mb-8 flex flex-col gap-4">
           <div>
-            <h2 className="font-display text-xl font-bold tracking-tight text-foreground">
+            <h2 className="flex items-center gap-2.5 font-display text-xl font-bold tracking-tight text-foreground">
+              <UsersIcon className="size-5 text-tactical-bright" aria-hidden="true" />
               Usuarios del sistema
             </h2>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
+            <p className="mt-1.5 max-w-2xl text-xs leading-relaxed text-muted">
               Cuentas con acceso al panel de acreditación. Desactivar una
               cuenta invalida sus sesiones activas de inmediato.
             </p>
@@ -71,6 +72,7 @@ async function UsersContent() {
 
         <section aria-label="Cuentas registradas" className="flex flex-col gap-3">
           <h2 className="flex items-center gap-2.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+            <UsersIcon className="size-3.5" aria-hidden="true" />
             Cuentas registradas
             <span className="inline-flex items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
               {users.length}

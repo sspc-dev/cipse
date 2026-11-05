@@ -306,6 +306,54 @@ export type AttendanceByDay = {
   count: number;
 };
 
+export type RegistrationsByDay = {
+  /** Fecha en formato YYYY-MM-DD (día del congreso). */
+  day: string;
+  count: number;
+};
+
+/**
+ * Altas por día para la tendencia de registro: últimos `windowDays` días
+ * calendario, con los días sin altas rellenados a cero. Solo lectura.
+ */
+export async function getRegistrationsByDay(
+  windowDays = 30,
+): Promise<RegistrationsByDay[]> {
+  const rows = await withConnection(async (connection) => {
+    const [result] = await connection.query<RowDataPacket[]>(
+      `SELECT DATE_FORMAT(created_at, '%Y-%m-%d') AS day, COUNT(*) AS altas
+       FROM accreditations
+       WHERE created_at >= CURDATE() - INTERVAL ? DAY
+       GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+       ORDER BY DATE_FORMAT(created_at, '%Y-%m-%d')`,
+      [windowDays - 1],
+    );
+
+    return result as { day: string; altas: number }[];
+  });
+
+  const countsByDay = new Map(
+    rows.map((row) => [row.day, Number(row.altas)]),
+  );
+
+  /* La ventana se ancla al día del congreso (CDMX), no al huso del servidor:
+   * se recorre aritmética sobre mediodías UTC para evitar saltos de fecha. */
+  const todayIso = isoDayInCongressTime(new Date());
+  const [year, month, day] = todayIso.split("-").map(Number);
+  const anchorUtcNoon = Date.UTC(year, month - 1, day, 12);
+
+  const days: RegistrationsByDay[] = [];
+  for (let offset = windowDays - 1; offset >= 0; offset -= 1) {
+    const iso = new Date(anchorUtcNoon - offset * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+
+    days.push({ day: iso, count: countsByDay.get(iso) ?? 0 });
+  }
+
+  return days.slice(-windowDays);
+}
+
 /**
  * Asistencias por día para la gráfica del panel: últimos `windowDays` días
  * calendario, con los días sin asistencia rellenados a cero.

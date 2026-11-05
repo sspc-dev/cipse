@@ -17,6 +17,8 @@ type TextFieldName = keyof FormValues;
 const labelClass =
   "text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground/80";
 const descriptionClass = "text-xs text-muted/70";
+const inputClass =
+  "py-2.5 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-2";
 
 export function TextFieldControl({
   control,
@@ -26,6 +28,7 @@ export function TextFieldControl({
   autoComplete,
   icon,
   description,
+  isRequired = true,
   type = "text",
 }: {
   control: Control<FormValues>;
@@ -35,7 +38,8 @@ export function TextFieldControl({
   autoComplete?: string;
   icon: ReactNode;
   description?: string;
-  type?: "text" | "email";
+  isRequired?: boolean;
+  type?: "text" | "email" | "tel";
 }) {
   return (
     <Controller
@@ -45,7 +49,7 @@ export function TextFieldControl({
         <TextField
           className="w-full gap-1.5"
           isInvalid={fieldState.invalid}
-          isRequired
+          isRequired={isRequired}
           name={field.name}
           value={field.value}
           onChange={field.onChange}
@@ -53,14 +57,14 @@ export function TextFieldControl({
           <Label className={labelClass}>{label}</Label>
           <InputGroup fullWidth>
             <InputGroup.Input
-              aria-required
+              aria-required={isRequired}
               autoComplete={autoComplete}
-              className="py-2.5 text-sm"
+              className={inputClass}
               onBlur={field.onBlur}
               placeholder={placeholder}
               type={type}
             />
-            <InputGroup.Suffix className="text-muted/45">
+            <InputGroup.Suffix className="text-muted/45 transition-colors group-focus-within:text-accent-soft-foreground">
               {icon}
             </InputGroup.Suffix>
           </InputGroup>

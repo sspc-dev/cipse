@@ -28,10 +28,16 @@ const defaultQrAltTemplate = "Código de acceso {folio} de {name}";
 export function QrVisual({
   credential,
   altTemplate = defaultQrAltTemplate,
+  url,
+  caption,
 }: {
   credential: CredentialData;
   /** Plantilla del texto alternativo del QR. */
   altTemplate?: string;
+  /** URL a codificar; por defecto, la credencial de check-in del participante. */
+  url?: string;
+  /** Texto bajo el QR; por defecto, el folio de la credencial. */
+  caption?: string;
 }) {
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
@@ -40,7 +46,7 @@ export function QrVisual({
 
     const origin = window.location.origin;
     QRCode.toDataURL(
-      credentialCheckinUrl(credential.accessCode, origin),
+      url ?? credentialCheckinUrl(credential.accessCode, origin),
       CREDENTIAL_QR_OPTIONS,
     )
       .then((dataUrl) => {
@@ -53,7 +59,7 @@ export function QrVisual({
     return () => {
       cancelled = true;
     };
-  }, [credential.accessCode]);
+  }, [credential.accessCode, url]);
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-white p-5 shadow-[0_18px_50px_-24px_rgba(16,24,29,0.35)]">
@@ -87,7 +93,7 @@ export function QrVisual({
         </div>
       </div>
       <p className="font-mono text-xs font-semibold tracking-[0.14em] text-zinc-900">
-        {folioLabel(credential.id)}
+        {caption ?? folioLabel(credential.id)}
       </p>
     </div>
   );

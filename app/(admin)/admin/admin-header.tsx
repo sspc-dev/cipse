@@ -4,6 +4,7 @@ import { AdminLogoutButton } from "./admin-logout-button";
 import {
   IdCardIcon,
   ImageIcon,
+  QrCodeIcon,
   ShieldIcon,
   UsersIcon,
   type IconProps,
@@ -45,8 +46,8 @@ export function AdminHeader({
   active: AdminSection;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 px-5 py-4 backdrop-blur-md dark:bg-[#070b11]/70 sm:px-8 lg:px-12">
-      <div className="mx-auto flex max-w-5xl flex-col gap-3">
+    <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 px-5 py-4 backdrop-blur-md dark:bg-[#070b11]/70 sm:px-8 lg:px-12 xl:px-14">
+      <div className="mx-auto flex w-full max-w-[1760px] flex-col gap-3">
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <Image
@@ -67,6 +68,14 @@ export function AdminHeader({
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link
+              aria-label="Abrir el QR imprimible para el autorregistro"
+              className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"
+              href="/admin/register-qr"
+            >
+              <QrCodeIcon aria-hidden="true" className="size-3.5" />
+              QR de registro
+            </Link>
             <Link
               aria-label="Ir a la galería pública del congreso"
               className="hidden rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"

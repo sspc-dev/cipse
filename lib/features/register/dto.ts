@@ -5,6 +5,9 @@ export type RegisterAccreditationDto = {
   name: string;
   lastname: string;
   country: string;
+  institution: string;
+  position: string;
+  phone: string;
   email: string;
 };
 
@@ -30,6 +33,9 @@ export function normalizeRegisterInput(
     name: input.name.trim(),
     lastname: input.lastname.trim(),
     country: input.country.trim(),
+    institution: input.institution.trim(),
+    position: input.position.trim(),
+    phone: input.phone.trim(),
     email: input.email.trim().toLowerCase(),
   };
 }
