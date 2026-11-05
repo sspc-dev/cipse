@@ -2,9 +2,15 @@
 #
 # Se usa `next start` (servidor completo) en lugar de `output: standalone`
 # porque el proxy de enrutamiento por idioma (proxy.ts, redirección de / a
-# /es / /en) solo corre con integridad en el servidor completo de esta
-# versión. Las credenciales QR apuntan a /checkin?c=…, así que el runtime
-# debe conservar ese comportamiento.
+# /es o /en) se compila a .next/server/middleware.js durante el build y el
+# servidor completo lo carga desde ahí en producción. Las credenciales QR
+# apuntan a /checkin?c=…, así que el runtime debe conservar ese comportamiento.
+#
+# Etapas:
+#   deps      → dependencias completas (TypeScript, Tailwind: el build las exige)
+#   build     → next build (deja .next con el middleware ya compilado)
+#   prod-deps → dependencias solo de producción para el runtime
+#   runtime   → servidor completo, usuario sin privilegios
 
 # ---------------------------------------------------------------- deps
 FROM node:22-alpine AS deps
@@ -13,7 +19,6 @@ WORKDIR /app
 RUN corepack enable pnpm
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Dependencias completas: el build necesita TypeScript y Tailwind.
 RUN pnpm install --frozen-lockfile
 
 # ---------------------------------------------------------------- build
@@ -25,18 +30,16 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN pnpm build \
-  && rm -rf /app/node_modules
+RUN pnpm build
 
-# Dependencias solo de producción para el runtime.
-RUN corepack enable pnpm \
-  && cp package.json pnpm-lock.yaml pnpm-workspace.yaml /tmp \
-  && cd /tmp \
-  && pnpm install --frozen-lockfile --prod \
-  && cd /app \
-  && rm -rf /app/node_modules \
-  && cp -R /tmp/node_modules /app/node_modules \
-  && rm -rf /tmp/node_modules /tmp/package.json /tmp/pnpm-lock.yaml /tmp/pnpm-workspace.yaml
+# ---------------------------------------------------------------- prod-deps
+FROM node:22-alpine AS prod-deps
+WORKDIR /app
+
+RUN corepack enable pnpm
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 
 # ---------------------------------------------------------------- runtime
 FROM node:22-alpine AS runtime
@@ -47,27 +50,22 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Usuario sin privilegios para el proceso del servidor.
-RUN addgroup -S cipse && adduser -S cipse -G cipse
-
-COPY --from=build /app/node_modules ./node_modules
-# .next necesita permisos de escritura para cipse: el optimizador de imágenes
-# escribe su caché en .next/cache/images durante el runtime.
-COPY --from=build --chown=cipse:cipse /app/.next ./.next
+# Proceso sin privilegios: usamos el usuario `node` (uid/gid 1000) que trae
+# la imagen. Coincidir con uid 1000 permite leer el PEM de OCI montado por
+# bind mount (propietario típico del primer usuario del host, modo 600).
+COPY --from=build /app/.next ./.next
+COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=build /app/public ./public
 COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/next.config.ts ./next.config.ts
-# El proxy de idioma se carga desde el código fuente en el arranque del
-# servidor completo de esta versión de Next.js.
-COPY --from=build /app/proxy.ts ./proxy.ts
 
 # El directorio de caché de imágenes debe existir y ser escribible por el
 # proceso del servidor antes de cambiar al usuario sin privilegios.
-RUN mkdir -p .next/cache/images && chown -R cipse:cipse .next/cache
+RUN mkdir -p .next/cache/images && chown -R node:node .next
 
-USER cipse
+USER node
 
 EXPOSE 3000
 

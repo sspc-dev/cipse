@@ -88,7 +88,7 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
   return (
     <section
       aria-labelledby="galeria-congreso-heading"
-      className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl"
+      className="relative overflow-hidden rounded-2xl border border-border bg-surface/80 shadow-2xl backdrop-blur-xl"
       id="galeria-congreso"
     >
       <div
@@ -97,7 +97,7 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-24 right-0 size-72 rounded-full bg-tactical/20 blur-[120px]"
+        className="ambient-drift pointer-events-none absolute -top-24 right-0 size-72 rounded-full bg-tactical/20 blur-[120px]"
       />
 
       <div className="relative flex flex-col gap-6 p-5 sm:p-8 lg:p-10">
@@ -202,7 +202,12 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {visibleItems.map((item) =>
               item.kind === "document" ? (
-                <DocumentCard copy={copy} item={item} key={item.id} />
+                <DocumentCard
+                  copy={copy}
+                  item={item}
+                  key={item.id}
+                  onOpen={openPreview}
+                />
               ) : (
                 <MediaCard
                   copy={copy}
@@ -240,6 +245,8 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
         copy={copy}
         isOpen={isPreviewOpen}
         item={previewItem}
+        items={visibleItems}
+        onNavigate={setPreviewItem}
         onOpenChange={setIsPreviewOpen}
       />
     </section>
@@ -293,7 +300,7 @@ function MediaCard({
   return (
     <button
       aria-label={formatMessage(copy.openAria, { title: item.title })}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-surface-secondary text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
+      className="glass-soft group flex flex-col overflow-hidden rounded-xl border border-border text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
       onClick={() => onOpen(item)}
       type="button"
     >
@@ -359,23 +366,24 @@ function MediaCard({
   );
 }
 
+/** Los PDF se ven en el visor; el resto de formatos abren en pestaña nueva. */
 function DocumentCard({
   copy,
   item,
+  onOpen,
 }: {
   copy: Dictionary["media"];
   item: MediaViewItem;
+  onOpen: (item: MediaViewItem) => void;
 }) {
-  return (
-    <a
-      aria-label={formatMessage(copy.openDocumentAria, { title: item.title })}
-      className="group flex flex-col rounded-xl border border-border bg-linear-to-br from-tactical to-[#082e22] p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-lg focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
-      href={mediaFileUrl(item.id)}
-      rel="noreferrer"
-      target="_blank"
-    >
+  const isPdf = item.mime === "application/pdf";
+  const cardClassName =
+    "group flex flex-col rounded-xl border border-border bg-linear-to-br from-tactical/85 to-[#082e22]/85 p-5 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold";
+
+  const content = (
+    <>
       <span className="flex items-start justify-between gap-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-gold-ceremonial">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-gold-ceremonial transition-colors duration-300 group-hover:border-gold/40 group-hover:bg-gold/15">
           <FileTextIcon className="size-5" aria-hidden="true" />
         </span>
         <span className="font-mono text-[10px] font-bold tracking-widest text-gold-ceremonial uppercase">
@@ -400,6 +408,33 @@ function DocumentCard({
           />
         </span>
       </span>
+    </>
+  );
+
+  if (isPdf) {
+    return (
+      <button
+        aria-label={formatMessage(copy.openDocumentPreviewAria, {
+          title: item.title,
+        })}
+        className={cardClassName}
+        onClick={() => onOpen(item)}
+        type="button"
+      >
+        {content}
+      </button>
+    );
+  }
+
+  return (
+    <a
+      aria-label={formatMessage(copy.openDocumentAria, { title: item.title })}
+      className={cardClassName}
+      href={mediaFileUrl(item.id)}
+      rel="noreferrer"
+      target="_blank"
+    >
+      {content}
     </a>
   );
 }

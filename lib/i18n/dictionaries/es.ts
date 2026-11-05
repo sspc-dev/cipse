@@ -136,12 +136,15 @@ export const es = {
     noMediaHint:
       "Los archivos oficiales aparecerán aquí cuando el equipo de acreditación los publique.",
     empty: "Aún no hay material publicado para {day}.",
-    emptyFiltered: "No se encontraron archivos con los criterios seleccionados.",
+    emptyFiltered:
+      "No se encontraron archivos con los criterios seleccionados.",
     emptyFilteredHint:
       "Seleccione «Todos» o elija otra jornada para revisar más material oficial.",
     openAria: "Abrir {title}",
     openDocument: "Abrir documento",
     openDocumentAria: "Abrir documento {title} en una pestaña nueva",
+    openDocumentPreviewAria: "Abrir vista previa de {title}",
+    featuredLogoAlt: "Logotipo oficial del Congreso Internacional Policial CIPSE XV",
     kinds: {
       image: "Imagen",
       video: "Video",
@@ -154,6 +157,11 @@ export const es = {
       videoAria: "Reproducción de {title}",
       download: "Descargar archivo oficial",
       closeAria: "Cerrar vista previa",
+      prevAria: "Archivo anterior",
+      nextAria: "Archivo siguiente",
+      documentPreviewAria: "Vista previa del documento {title}",
+      unsupported:
+        "Vista previa no disponible para este formato. Descárguelo para revisar su contenido.",
     },
     downloadPackage: "Descargar paquete (.ZIP)",
     downloadUnavailable: "Disponible próximamente",

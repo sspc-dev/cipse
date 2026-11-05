@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { ThemeSwitcher } from "@/app/theme-switcher";
 import { getDictionary, hasLocale, LOCALES } from "@/lib/i18n";
@@ -35,14 +36,16 @@ export default async function LanguageRootLayout(
     <>
       <HtmlLangSync lang={lang} />
       {props.children}
-      <ThemeSwitcher
-        labels={{
-          groupLabel: dictionary.common.themeLabel,
-          light: dictionary.common.themeLight,
-          dark: dictionary.common.themeDark,
-          system: dictionary.common.themeSystem,
-        }}
-      />
+      <Suspense fallback={null}>
+        <ThemeSwitcher
+          labels={{
+            groupLabel: dictionary.common.themeLabel,
+            light: dictionary.common.themeLight,
+            dark: dictionary.common.themeDark,
+            system: dictionary.common.themeSystem,
+          }}
+        />
+      </Suspense>
     </>
   );
 }

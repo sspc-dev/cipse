@@ -6,21 +6,27 @@ import {
   MediaStorageNotConfiguredError,
 } from "@/lib/features/media/storage";
 
-
 function notFound(message: string) {
   return new Response(message, { status: 404 });
 }
 
+/** El visor del navegador solo muestra documentos inline de forma fiable si son PDF; el resto se descarga. */
+const INLINE_DOCUMENT_MIME = new Set(["application/pdf"]);
+
 function contentDisposition(
   kind: string,
+  mime: string,
   originalName: string,
 ): string {
   const safeName = originalName.replace(/["\\\r\n]/g, "");
   const encoded = encodeURIComponent(originalName);
 
-  return kind === "document"
-    ? `attachment; filename="${safeName}"; filename*=UTF-8''${encoded}`
-    : `inline; filename="${safeName}"; filename*=UTF-8''${encoded}`;
+  const inline =
+    kind !== "document" || INLINE_DOCUMENT_MIME.has(mime);
+
+  return inline
+    ? `inline; filename="${safeName}"; filename*=UTF-8''${encoded}`
+    : `attachment; filename="${safeName}"; filename*=UTF-8''${encoded}`;
 }
 
 export async function GET(
@@ -58,7 +64,11 @@ export async function GET(
 
     const headers = new Headers({
       "Content-Type": media.mime,
-      "Content-Disposition": contentDisposition(media.kind, media.originalName),
+      "Content-Disposition": contentDisposition(
+        media.kind,
+        media.mime,
+        media.originalName,
+      ),
       "Cache-Control": "public, max-age=31536000, immutable",
       "Accept-Ranges": "bytes",
     });

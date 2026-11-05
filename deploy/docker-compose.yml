@@ -39,7 +39,7 @@ name: cipse-prod
 
 services:
   traefik:
-    image: traefik:latest  # v3.7.17: cliente docker negociable con daemons recientes
+    image: traefik:v3  # serie estable 3.x: cliente docker negociable con daemons recientes
     restart: unless-stopped
     command:
       - --entryPoints.web.address=:80
@@ -79,8 +79,11 @@ services:
     environment:
       MYSQL_HOST: db
       MYSQL_PORT: "3306"
-      # El PEM de OCI vive en el host y se monta abajo (read-only); dentro
-      # del contenedor se sobrescribe la ruta del env_file.
+      # PEM de OCI vive en el host y se monta abajo (read-only); dentro del
+      # contenedor se sobrescribe la ruta del env_file. El PEM debe ser
+      # legible por uid 1000: el app corre como `node` (uid 1000, gid 1000);
+      # si el PEM pertenece a ese uid (propietario típico de la sesión del
+      # servidor), no hace falta nada más; si no, chown/chgrp al host.
       OCI_PRIVATE_KEY: /run/secrets/oci/key.pem
     volumes:
       # OCI_PEM_HOST_PATH se define en el .env de la raíz (apunta al PEM

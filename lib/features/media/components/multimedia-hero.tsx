@@ -1,4 +1,4 @@
-import { formatMessage, type Dictionary } from "@/lib/i18n";
+import { type Dictionary } from "@/lib/i18n";
 import {
   countAvailableKinds,
   countDaysWithMedia,
@@ -31,18 +31,18 @@ export function MultimediaHero({ items, copy }: MultimediaHeroProps) {
   ];
 
   return (
-    <section className="relative overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl">
+    <section className="relative overflow-hidden rounded-2xl border border-border bg-surface/80 shadow-2xl backdrop-blur-xl">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 opacity-90 [background-image:linear-gradient(to_right,rgba(197,155,39,0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgba(29,75,68,0.06)_1px,transparent_1px)] [background-size:80px_80px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -top-32 right-1/4 size-96 rounded-full bg-tactical/20 blur-[100px]"
+        className="ambient-drift pointer-events-none absolute -top-32 right-1/4 size-96 rounded-full bg-tactical/20 blur-[100px]"
       />
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute -bottom-32 left-10 size-80 rounded-full bg-gold/10 blur-[90px]"
+        className="ambient-drift-slow pointer-events-none absolute -bottom-32 left-10 size-80 rounded-full bg-gold/10 blur-[90px]"
       />
 
       <div className="relative grid gap-8 p-6 sm:p-9 lg:grid-cols-12 lg:items-center lg:gap-10 lg:p-11">
@@ -85,12 +85,6 @@ export function MultimediaHero({ items, copy }: MultimediaHeroProps) {
 
         <div className="lg:col-span-5">
           <FeaturedMediaCard copy={copy} item={featured} />
-          {featured ? (
-            <p className="mt-3 text-center font-mono text-[10px] tracking-wider text-muted uppercase">
-              {formatMessage(copy.dayLabel, { n: featured.day })} ·{" "}
-              {copy.kinds[featured.kind]}
-            </p>
-          ) : null}
         </div>
       </div>
     </section>

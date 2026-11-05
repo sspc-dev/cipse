@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ThemeSwitcher } from "@/app/theme-switcher";
 
 export const metadata: Metadata = {
@@ -16,7 +17,9 @@ export default function AdminRootLayout({
   return (
     <>
       {children}
-      <ThemeSwitcher />
+      <Suspense fallback={null}>
+        <ThemeSwitcher />
+      </Suspense>
     </>
   );
 }

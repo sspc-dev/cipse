@@ -41,59 +41,78 @@ export default async function MultimediaPage(
   const copy = dictionary.media;
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
       <div className="relative">
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(85%_50%_at_50%_0%,rgba(29,75,68,0.18),transparent_70%)]"
         />
+        <div
+          aria-hidden="true"
+          className="ambient-drift-slow pointer-events-none absolute -top-32 right-1/4 size-96 rounded-full bg-tactical/15 blur-[120px]"
+        />
+        <div
+          aria-hidden="true"
+          className="ambient-drift pointer-events-none absolute top-1/3 -left-32 size-80 rounded-full bg-gold/10 blur-[110px]"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[url('/imgs/texture.png')] bg-repeat grayscale bg-size-[960px] dark:filter-none opacity-[0.04] mask-[linear-gradient(to_bottom,black_0%,rgba(0,0,0,0.55)_45%,transparent_85%)] dark:bg-[url('/imgs/texture-green.png')] dark:opacity-[0.08]"
+        />
 
-        <header className="relative z-10 border-b border-border/60 px-5 py-5 sm:px-8 lg:px-12">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Image
-                alt={dictionary.register.sealAlt}
-                className="h-11 w-auto"
-                height={120}
-                src="/imgs/XV CIPSE logos_vv1.webp"
-                width={120}
-              />
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-ink/90">
-                  {dictionary.common.event}
-                </p>
-                <p className="font-display text-lg font-bold tracking-tight text-foreground">
-                  {copy.title}
-                </p>
+        <div className="max-w-10/12 mx-auto">
+          <header className="relative z-10 border-b border-border/60 px-5 py-5 sm:px-8 lg:px-12">
+            <div className="flex w-full flex-wrap items-center justify-between gap-4">
+              <div className="reveal flex items-center gap-3">
+                <Image
+                  alt={dictionary.register.sealAlt}
+                  className="h-11 w-auto"
+                  height={120}
+                  src="/imgs/XV CIPSE logos_vv1.webp"
+                  width={120}
+                />
+                <div className="min-w-0 border-l border-border pl-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-ink/90">
+                    {dictionary.common.event}
+                  </p>
+                  <p className="truncate font-display text-lg font-bold tracking-tight text-foreground">
+                    {copy.title}
+                  </p>
+                </div>
+              </div>
+              <div className="reveal flex items-center gap-2 [animation-delay:150ms]">
+                <LanguageSwitcher
+                  className="h-8 rounded-full px-3 text-[11px] font-semibold"
+                  label={dictionary.common.languageSwitcherLabel}
+                  locale={lang}
+                  targetLabel={
+                    getDictionary(lang === "es" ? "en" : "es").common
+                      .languageName
+                  }
+                />
+                <a
+                  className="rounded-full border border-border px-3.5 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
+                  href={localizedPath(lang, "/register")}
+                >
+                  {dictionary.common.registerLink}
+                </a>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher
-                className="h-8 rounded-full px-3 text-[11px] font-semibold"
-                label={dictionary.common.languageSwitcherLabel}
-                locale={lang}
-                targetLabel={
-                  getDictionary(lang === "es" ? "en" : "es").common.languageName
-                }
-              />
-              <a
-                className="rounded-full border border-border px-3.5 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
-                href={localizedPath(lang, "/register")}
-              >
-                {dictionary.common.registerLink}
-              </a>
-            </div>
+          </header>
+
+          <div className="relative z-10 flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
+            <Suspense fallback={<GallerySkeleton />}>
+              <MultimediaContent dictionary={dictionary} />
+            </Suspense>
+
+            <footer className="reveal mt-4 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60 [animation-delay:200ms]">
+              {copy.footer}
+            </footer>
           </div>
-        </header>
-
-        <div className="relative z-10 mx-auto flex max-w-6xl flex-col gap-6 px-5 py-8 sm:px-8 lg:px-12">
-          <Suspense fallback={<GallerySkeleton />}>
-            <MultimediaContent dictionary={dictionary} />
-          </Suspense>
-
-          <footer className="mt-4 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60">
-            {copy.footer}
-          </footer>
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-gold/40 to-transparent"
+          />
         </div>
       </div>
     </main>
@@ -103,12 +122,12 @@ export default async function MultimediaPage(
 function GallerySkeleton() {
   return (
     <div className="flex flex-col gap-6" aria-hidden="true">
-      <Skeleton className="h-[420px] rounded-2xl" />
-      <div className="rounded-2xl border border-border bg-surface p-5 sm:p-8">
+      <Skeleton className="h-105 rounded-2xl" />
+      <div className="rounded-2xl border border-border bg-surface/80 p-5 shadow-2xl backdrop-blur-xl sm:p-8">
         <Skeleton className="h-5 w-48 rounded-lg" />
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, index) => (
-            <Skeleton className="aspect-[4/3] rounded-xl" key={index} />
+            <Skeleton className="aspect-4/3 rounded-xl" key={index} />
           ))}
         </div>
       </div>
@@ -127,8 +146,12 @@ async function MultimediaContent({
 
   return (
     <>
-      <MultimediaHero copy={dictionary.media} items={items} />
-      <MultimediaGallery copy={dictionary.media} items={items} />
+      <div className="reveal">
+        <MultimediaHero copy={dictionary.media} items={items} />
+      </div>
+      <div className="reveal [animation-delay:150ms]">
+        <MultimediaGallery copy={dictionary.media} items={items} />
+      </div>
     </>
   );
 }

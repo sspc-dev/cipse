@@ -15,3 +15,13 @@ export function formatMediaSize(bytes: number): string {
 export function mediaFileUrl(id: number): string {
   return `/multimedia/file/${id}`;
 }
+
+/**
+ * URL para el visor embebido (iframe). El parámetro de consulta cambia la
+ * clave de caché del navegador: descarta respuestas previas servidas con
+ * `Content-Disposition: attachment` (cacheadas como immutable por un año)
+ * y fuerza una petición que reciba las cabeceras inline actuales.
+ */
+export function mediaEmbedUrl(id: number): string {
+  return `/multimedia/file/${id}?view=inline`;
+}
