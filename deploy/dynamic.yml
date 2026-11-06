@@ -9,8 +9,9 @@
 #   http:   redirección permanente HTTP → HTTPS en el entrypoint web.
 #
 # Rutas dentro del contenedor (no del host): los bind mounts que alimentan
-# /run/certs se declaran en deploy/docker-compose.tls.yml, donde también
-# viven las rutas de origen en el host (TLS_CERT_HOST_PATH/TLS_KEY_HOST_PATH).
+# /run/certs se declaran en deploy/docker-compose.tls.yml; por defecto leen
+# /etc/ssl/certs/fullchain.pem y /etc/ssl/certs/xv-cipse.sspc.gob.mx.key del
+# host (sobreescribibles con TLS_CERT_HOST_PATH/TLS_KEY_HOST_PATH).
 #
 # Especificar aquí un HostRegexp de dominio es opcional: el router del app
 # (PathPrefix(/) sobre websecure) captura todo el tráfico y la tienda

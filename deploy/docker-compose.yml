@@ -22,8 +22,13 @@
 # Fuente única de configuración: el .env de la raíz del repo alimenta la app
 # (env_file) y la base de datos (env_file + valores por defecto seguros).
 # `--env-file .env` hace además que Compose use ese archivo para interpolar
-# variables del propio compose (p. ej. OCI_PEM_HOST_PATH): sin esa bandera
+# variables del propio compose (p. ej. TRAEFIK_HTTP_PORT): sin esa bandera
 # Compose solo mira deploy/.env, que no existe.
+#
+# Rutas de archivos en el host (valores por defecto; no requieren variables):
+#   /etc/ssl/certs/oci.pem                  → /run/secrets/oci/key.pem (app)
+#   /etc/ssl/certs/fullchain.pem            → cert TLS (con el overlay TLS)
+#   /etc/ssl/certs/xv-cipse.sspc.gob.mx.key → llave TLS (con el overlay TLS)
 #
 # Uso (desde la raíz del repo):
 #   docker compose --env-file .env -f deploy/docker-compose.yml up -d --build
@@ -96,13 +101,13 @@ services:
       # servidor), no hace falta nada más; si no, chown/chgrp al host.
       OCI_PRIVATE_KEY: /run/secrets/oci/key.pem
     volumes:
-      # OCI_PEM_HOST_PATH se define en el .env de la raíz (apunta al PEM
-      # descargado de OCI, fuera del repo). Read-only: el proceso del
-      # servidor solo lo lee para firmar peticiones.
+      # PEM de OCI: por defecto /etc/ssl/certs/oci.pem (ruta habitual en el
+      # servidor); OCI_PEM_HOST_PATH permite sobreescribirla sin editar este
+      # archivo. Read-only: el proceso solo lo lee para firmar peticiones.
       # create_host_path=false: si el PEM no existe en el host, el
       # contenedor falla al crearse en lugar de montar un directorio vacío.
       - type: bind
-        source: ${OCI_PEM_HOST_PATH:?Defina OCI_PEM_HOST_PATH con la ruta del PEM de OCI en el host}
+        source: ${OCI_PEM_HOST_PATH:-/etc/ssl/certs/oci.pem}
         target: /run/secrets/oci/key.pem
         read_only: true
         bind:
