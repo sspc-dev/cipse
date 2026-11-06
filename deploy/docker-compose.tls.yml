@@ -5,14 +5,18 @@
 # configuración dinámica (deploy/dynamic.yml) y define las rutas del host
 # del certificado y la llave privados de xv-cipse.sspc.gob.mx.
 #
-# Rutas de cert y llave en el host (fuente de estas dos rutas):
-#   TLS_CERT_HOST_PATH  →  /run/certs/cipse/cert.pem   (dentro de traefik)
-#   TLS_KEY_HOST_PATH   →  /run/certs/cipse/key.pem    (dentro de traefik)
+# Rutas del host (valores por defecto, sobreescribibles con variables):
+#   TLS_CERT_HOST_PATH  =/etc/ssl/certs/fullchain.pem
+#                       →  /run/certs/cipse/cert.pem   (dentro de traefik)
+#   TLS_KEY_HOST_PATH   =/etc/ssl/certs/xv-cipse.sspc.gob.mx.key
+#                       →  /run/certs/cipse/key.pem    (dentro de traefik)
 #
-# Ambas variables son obligatorias al usar este overlay y apuntan a
-# archivos fuera del repo (PEM concatenado con cadena del emisor para el
-# cert; llave tipo RSA/ECDSA). Permisos: el contenedor de Traefik corre
-# como root, así que un key.pem con 600 solo para el dueño es suficiente.
+# No hace falta definir las variables: el overlay lee por defecto los
+# archivos instalados en /etc/ssl/certs. Solo si el certificado o la llave
+# viven en otra ruta (p. ej. renovación con otro nombre) se sobreescriben
+# en el .env de la raíz. fullchain.pem debe incluir la hoja y la cadena
+# intermedia. Permisos: el contenedor de Traefik corre como root, así que
+# una llave con 600 y dueño distinto al del contenedor se lee sin problema.
 #
 # Uso (desde la raíz del repo):
 #   docker compose --env-file .env \
@@ -50,8 +54,10 @@ services:
       # dynamic.yml con los certificados; los bind mounts son read-only.
       - ./dynamic.yml:/etc/traefik/dynamic/tls.yml:ro
       # Rutas del certificado y de la llave en el host → dentro de Traefik.
-      - ${TLS_CERT_HOST_PATH:?Defina TLS_CERT_HOST_PATH con la ruta del certificado en el host}:/run/certs/cipse/cert.pem:ro
-      - ${TLS_KEY_HOST_PATH:?Defina TLS_KEY_HOST_PATH con la ruta de la llave privada en el host}:/run/certs/cipse/key.pem:ro
+      # Por defecto se leen de /etc/ssl/certs; TLS_*_HOST_PATH permite
+      # sobreescribir la ruta sin editar este archivo.
+      - ${TLS_CERT_HOST_PATH:-/etc/ssl/certs/fullchain.pem}:/run/certs/cipse/cert.pem:ro
+      - ${TLS_KEY_HOST_PATH:-/etc/ssl/certs/xv-cipse.sspc.gob.mx.key}:/run/certs/cipse/key.pem:ro
 
   app:
     labels:

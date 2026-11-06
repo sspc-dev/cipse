@@ -10,8 +10,9 @@
 # Router sin dominio: PathPrefix(/) sobre el entrypoint web (:80).
 #
 # Con dominio y TLS (xv-cipse.sspc.gob.mx), añada el overlay
-# deploy/docker-compose.tls.yml: habilita :443, monta cert y llave del
-# host (TLS_CERT_HOST_PATH/TLS_KEY_HOST_PATH) y redirige HTTP a HTTPS:
+# deploy/docker-compose.tls.yml: habilita :443, monta el certificado y la
+# llave desde /etc/ssl/certs (sobreescribibles con TLS_CERT_HOST_PATH y
+# TLS_KEY_HOST_PATH) y redirige HTTP a HTTPS:
 #
 #   docker compose --env-file .env \
 #     -f deploy/docker-compose.yml \
