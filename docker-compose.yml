@@ -1,5 +1,7 @@
 # Base de datos MySQL para desarrollo local del CIPSE XV.
 # El esquema de db/sql/ se inicializa automáticamente al crear el volumen.
+# Volumen ya creado antes de añadir migraciones: sincronícelo con
+#   bash deploy/db-migrate.sh cipse-db
 # El host 3307 está mapeado porque el equipo mantiene un mysqld local en 3306.
 services:
   db:

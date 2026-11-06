@@ -46,10 +46,11 @@
 #   docker compose --env-file .env -f deploy/docker-compose.yml run --rm app \
 #     node scripts/create-admin.mjs
 #
-# Volumen ya inicializado con versiones anteriores: ejecutar a mano la
-# migración idempotente:
-#   docker exec -i NOMBRE_MYSQL mysql -u<user> -p<pass> <db> \
-#     < db/sql/006_drop_accreditation_status.sql
+# Volumen ya inicializado con versiones anteriores (docker-entrypoint-initdb.d
+# solo se ejecuta al crear el volumen; faltan tablas/columnas nuevas):
+# sincronice el esquema con el runner. Las migraciones son idempotentes, así
+# que es seguro repetirlo:
+#   bash deploy/db-migrate.sh
 #
 # name: cipse-prod para que nunca colisione con el proyecto de desarrollo
 # (docker compose de la raíz, proyecto "cipse"): un down del stack prod no

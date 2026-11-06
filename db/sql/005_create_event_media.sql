@@ -1,8 +1,11 @@
 -- CIPSE XV: material multimedia del evento (imágenes, videos y documentos).
 -- Los archivos viven en OCI Object Storage; aquí solo se guardan metadatos.
 -- docker-entrypoint-initdb.d la ejecuta al crear el volumen.
+--
+-- Idempotente: converge en volúmenes nuevos y ya inicializados
+-- (ver deploy/db-migrate.sh).
 
-CREATE TABLE event_media (
+CREATE TABLE IF NOT EXISTS event_media (
   id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   day           TINYINT UNSIGNED NOT NULL,
   kind          ENUM('image', 'video', 'document') NOT NULL,
