@@ -19,10 +19,16 @@
 # una llave con 600 y dueño distinto al del contenedor se lee sin problema.
 #
 # Uso (desde la raíz del repo):
+#   bash deploy/preflight.sh --fix    # valida rutas/archivos y router único
 #   docker compose --env-file .env \
 #     -f deploy/docker-compose.yml \
 #     -f deploy/docker-compose.tls.yml \
 #     up -d
+#
+# Si una de las rutas apunta a un directorio, Traefik falla con
+# "read /run/certs/cipse/cert.pem: is a directory": Docker crea un
+# directorio vacío cuando el origen del bind mount no existe. El preflight
+# lo detecta y --fix lo elimina.
 #
 # Sin TLS (solo el compose base) el acceso continúa por HTTP :80; con el
 # overlay todo HTTP redirige permanente a HTTPS (deploy/dynamic.yml).

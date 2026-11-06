@@ -30,6 +30,15 @@
 #   /etc/ssl/certs/fullchain.pem            → cert TLS (con el overlay TLS)
 #   /etc/ssl/certs/xv-cipse.sspc.gob.mx.key → llave TLS (con el overlay TLS)
 #
+# Antes de desplegar, ejecute el preflight. Detecta (y con --fix corrige)
+# rutas que son directorios en lugar de archivos — Docker crea un directorio
+# vacío cuando el origen de un bind mount no existe y Traefik falla luego
+# con "read /run/certs/cipse/cert.pem: is a directory" — overrides
+# obsoletos en .env y contenedores antiguos que duplican el router `cipse`:
+#
+#   bash deploy/preflight.sh          # comprobar
+#   bash deploy/preflight.sh --fix    # comprobar y corregir
+#
 # Uso (desde la raíz del repo):
 #   docker compose --env-file .env -f deploy/docker-compose.yml up -d --build
 #
