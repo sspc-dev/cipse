@@ -1,0 +1,52 @@
+# CIPSE XV — configuración dinámica de Traefik (provider file).
+#
+# Cargada por deploy/docker-compose.tls.yml desde
+# /etc/traefik/dynamic/tls.yml. Define:
+#
+#   tls:    certificado y llave privados de xv-cipse.sspc.gob.mx montados
+#           en /run/certs/cipse dentro del contenedor de Traefik; la
+#           tienda default los usa para cualquier SNI (dominio o IP).
+#   http:   redirección permanente HTTP → HTTPS en el entrypoint web.
+#
+# Rutas dentro del contenedor (no del host): los bind mounts que alimentan
+# /run/certs se declaran en deploy/docker-compose.tls.yml, donde también
+# viven las rutas de origen en el host (TLS_CERT_HOST_PATH/TLS_KEY_HOST_PATH).
+#
+# Especificar aquí un HostRegexp de dominio es opcional: el router del app
+# (PathPrefix(/) sobre websecure) captura todo el tráfico y la tienda
+# default ya cubre SNI; añadir dominios adicionales implicaría más
+# certificados y reglas SNI por dominio.
+
+tls:
+  certificates:
+    - certFile: /run/certs/cipse/cert.pem
+      keyFile: /run/certs/cipse/key.pem
+  stores:
+    default:
+      defaultCertificate:
+        certFile: /run/certs/cipse/cert.pem
+        keyFile: /run/certs/cipse/key.pem
+
+http:
+  routers:
+    # Catch-all del entrypoint web: prioridad 2 supera la del router cipse
+    # (1) y redirige todo HTTP a HTTPS antes de tocar el app.
+    # La salud interna de Traefik (--ping) escucha en su propio
+    # entrypoint :8080 y no pasa por este router.
+    http-to-https:
+      rule: "PathPrefix(`/`)"
+      entryPoints:
+        - web
+      priority: 2
+      service: noop@internal
+      middlewares:
+        - redirect-to-https
+
+  middlewares:
+    redirect-to-https:
+      redirectScheme:
+        scheme: https
+        # Redirige hacia :443: el puerto público HTTPS del host debe ser
+        # 443 (TRAEFIK_HTTPS_PORT sin definir o igual a 443).
+        port: "443"
+        permanent: true

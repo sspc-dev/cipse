@@ -1,0 +1,61 @@
+# CIPSE XV — overlay TLS para el stack de producción.
+#
+# Archivo APARTE de deploy/docker-compose.yml: se aplica encima con una
+# segunda bandera -f. Habilita el entrypoint websecure (:443), monta la
+# configuración dinámica (deploy/dynamic.yml) y define las rutas del host
+# del certificado y la llave privados de xv-cipse.sspc.gob.mx.
+#
+# Rutas de cert y llave en el host (fuente de estas dos rutas):
+#   TLS_CERT_HOST_PATH  →  /run/certs/cipse/cert.pem   (dentro de traefik)
+#   TLS_KEY_HOST_PATH   →  /run/certs/cipse/key.pem    (dentro de traefik)
+#
+# Ambas variables son obligatorias al usar este overlay y apuntan a
+# archivos fuera del repo (PEM concatenado con cadena del emisor para el
+# cert; llave tipo RSA/ECDSA). Permisos: el contenedor de Traefik corre
+# como root, así que un key.pem con 600 solo para el dueño es suficiente.
+#
+# Uso (desde la raíz del repo):
+#   docker compose --env-file .env \
+#     -f deploy/docker-compose.yml \
+#     -f deploy/docker-compose.tls.yml \
+#     up -d
+#
+# Sin TLS (solo el compose base) el acceso continúa por HTTP :80; con el
+# overlay todo HTTP redirige permanente a HTTPS (deploy/dynamic.yml).
+#
+# Portadas de puertos son independientes del compose base: este archivo
+# añade 443 pero respeta TRAEFIK_HTTP_PORT (p. ej. si el host ya ocupa :80).
+
+services:
+  traefik:
+    restart: unless-stopped
+    # El command de un overlay REEMPLAZA por completo el del base: hay que
+    # redeclarar todas las opciones y añadir websecure + provider file.
+    command:
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=cipse-prod_internal
+      # Configuración dinámica: directorio con tls.yml (deploy/dynamic.yml).
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --api=false
+      - --ping=true
+    ports:
+      # Puerto HTTP del base se conserva; 443 es el nuevo punto de entrada.
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+    volumes:
+      # Heredados del base: socket docker (read-only) y datos de Traefik.
+      # dynamic.yml con los certificados; los bind mounts son read-only.
+      - ./dynamic.yml:/etc/traefik/dynamic/tls.yml:ro
+      # Rutas del certificado y de la llave en el host → dentro de Traefik.
+      - ${TLS_CERT_HOST_PATH:?Defina TLS_CERT_HOST_PATH con la ruta del certificado en el host}:/run/certs/cipse/cert.pem:ro
+      - ${TLS_KEY_HOST_PATH:?Defina TLS_KEY_HOST_PATH con la ruta de la llave privada en el host}:/run/certs/cipse/key.pem:ro
+
+  app:
+    labels:
+      # Router del app movido al entrypoint websecure; el resto de labels
+      # (rule, priority, service, network) se heredan del compose base.
+      - traefik.http.routers.cipse.entrypoints=websecure
+      - traefik.http.routers.cipse.tls=true
