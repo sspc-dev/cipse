@@ -56,8 +56,20 @@ services:
       # Rutas del certificado y de la llave en el host → dentro de Traefik.
       # Por defecto se leen de /etc/ssl/certs; TLS_*_HOST_PATH permite
       # sobreescribir la ruta sin editar este archivo.
-      - ${TLS_CERT_HOST_PATH:-/etc/ssl/certs/fullchain.pem}:/run/certs/cipse/cert.pem:ro
-      - ${TLS_KEY_HOST_PATH:-/etc/ssl/certs/xv-cipse.sspc.gob.mx.key}:/run/certs/cipse/key.pem:ro
+      # create_host_path=false: si el archivo no existe en el host, el
+      # contenedor falla al crearse en lugar de montar un directorio vacío.
+      - type: bind
+        source: ${TLS_CERT_HOST_PATH:-/etc/ssl/certs/fullchain.pem}
+        target: /run/certs/cipse/cert.pem
+        read_only: true
+        bind:
+          create_host_path: false
+      - type: bind
+        source: ${TLS_KEY_HOST_PATH:-/etc/ssl/certs/xv-cipse.sspc.gob.mx.key}
+        target: /run/certs/cipse/key.pem
+        read_only: true
+        bind:
+          create_host_path: false
 
   app:
     labels:

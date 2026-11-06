@@ -99,7 +99,14 @@ services:
       # OCI_PEM_HOST_PATH se define en el .env de la raíz (apunta al PEM
       # descargado de OCI, fuera del repo). Read-only: el proceso del
       # servidor solo lo lee para firmar peticiones.
-      - ${OCI_PEM_HOST_PATH:?Defina OCI_PEM_HOST_PATH con la ruta del PEM de OCI en el host}:/run/secrets/oci/key.pem:ro
+      # create_host_path=false: si el PEM no existe en el host, el
+      # contenedor falla al crearse en lugar de montar un directorio vacío.
+      - type: bind
+        source: ${OCI_PEM_HOST_PATH:?Defina OCI_PEM_HOST_PATH con la ruta del PEM de OCI en el host}
+        target: /run/secrets/oci/key.pem
+        read_only: true
+        bind:
+          create_host_path: false
     depends_on:
       db:
         condition: service_healthy
