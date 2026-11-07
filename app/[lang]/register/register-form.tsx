@@ -176,7 +176,7 @@ export function RegisterForm({
             <TextFieldControl
               autoComplete="email"
               control={control}
-              description={copy.emailDescription}
+              // description={copy.emailDescription}
               icon={<MailIcon className="size-4" />}
               label={copy.emailLabel}
               name="email"

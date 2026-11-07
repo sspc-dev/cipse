@@ -247,6 +247,39 @@ export function FileTextIcon(props: IconProps) {
   );
 }
 
+export function FilePdfIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <path d="M8.5 12.5h6M8.5 15h3.5" />
+      <path d="M13.5 20.5V17l1.25.85L16 17v3.5" />
+    </svg>
+  );
+}
+
+export function FileSpreadsheetIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <rect height="7" rx="1" width="7" x="8.5" y="12" />
+      <path d="M8.5 15.5h7M12 12v7" />
+    </svg>
+  );
+}
+
+export function FilePresentationIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" />
+      <path d="M14 3v5h5" />
+      <rect height="5" rx="0.5" width="7" x="8.5" y="12" />
+      <path d="M12 17v2.5M9.5 19.5h5" />
+    </svg>
+  );
+}
+
 export function UsersIcon(props: IconProps) {
   return (
     <svg {...base} {...props}>

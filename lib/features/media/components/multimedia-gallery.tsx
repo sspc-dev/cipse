@@ -5,6 +5,9 @@ import { Button, SearchField, ToggleButton } from "@heroui/react";
 import {
   ChevronRightIcon,
   DownloadIcon,
+  FilePdfIcon,
+  FilePresentationIcon,
+  FileSpreadsheetIcon,
   FileTextIcon,
   ImageIcon,
   PlayIcon,
@@ -348,7 +351,10 @@ function MediaCard({
       </span>
 
       <span className="flex flex-1 flex-col gap-1.5 px-3.5 pb-3.5 pt-3">
-        <span className="line-clamp-2 text-sm font-semibold text-foreground transition-colors group-hover:text-gold-ink">
+        <span
+          className="line-clamp-2 text-sm font-semibold text-foreground transition-colors group-hover:text-gold-ink"
+          title={item.title}
+        >
           {item.title}
         </span>
         <span className="mt-auto flex items-center justify-between gap-2 text-[11px] text-muted">
@@ -366,6 +372,17 @@ function MediaCard({
   );
 }
 
+/** Icono representativo del formato del documento. */
+function DocumentFormatIcon({ format }: { format: string }) {
+  if (format === "PDF")
+    return <FilePdfIcon className="size-5" aria-hidden="true" />;
+  if (format === "XLS" || format === "XLSX")
+    return <FileSpreadsheetIcon className="size-5" aria-hidden="true" />;
+  if (format === "PPT" || format === "PPTX")
+    return <FilePresentationIcon className="size-5" aria-hidden="true" />;
+  return <FileTextIcon className="size-5" aria-hidden="true" />;
+}
+
 /** Los PDF se ven en el visor; el resto de formatos abren en pestaña nueva. */
 function DocumentCard({
   copy,
@@ -378,13 +395,13 @@ function DocumentCard({
 }) {
   const isPdf = item.mime === "application/pdf";
   const cardClassName =
-    "group flex flex-col rounded-xl border border-border bg-linear-to-br from-tactical/85 to-[#082e22]/85 p-5 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold";
+    "group flex h-full flex-col rounded-xl border border-border bg-linear-to-br from-tactical/85 to-[#082e22]/85 p-5 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold";
 
   const content = (
     <>
       <span className="flex items-start justify-between gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-gold-ceremonial transition-colors duration-300 group-hover:border-gold/40 group-hover:bg-gold/15">
-          <FileTextIcon className="size-5" aria-hidden="true" />
+          <DocumentFormatIcon format={mediaFormatTag(item)} />
         </span>
         <span className="font-mono text-[10px] font-bold tracking-widest text-gold-ceremonial uppercase">
           {mediaFormatTag(item)}
@@ -394,11 +411,14 @@ function DocumentCard({
       <span className="mt-4 font-mono text-[10px] font-semibold tracking-[0.18em] text-emerald-300/80 uppercase">
         {formatMessage(copy.dayLabel, { n: item.day })} · {copy.kinds.document}
       </span>
-      <span className="mt-1.5 line-clamp-3 text-sm font-semibold text-white">
+      <span
+        className="mt-1.5 line-clamp-3 text-sm font-semibold text-white"
+        title={item.title}
+      >
         {item.title}
       </span>
 
-      <span className="mt-4 flex items-center justify-between gap-2 border-t border-white/10 pt-4 text-[11px] text-white/70">
+      <span className="mt-auto flex items-center justify-between gap-2 border-t border-white/10 pt-4 text-[11px] text-white/70">
         <span className="font-mono">{formatMediaSize(item.sizeBytes)}</span>
         <span className="inline-flex items-center gap-1 font-semibold text-gold-ceremonial">
           {copy.openDocument}

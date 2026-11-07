@@ -83,7 +83,7 @@ export function PdfViewerButton({
                 aria-label={`Visor de PDF: ${title}`}
                 className="size-full min-h-[70vh] w-full border-0"
                 onLoad={() => setIsLoading(false)}
-                src={`${fileUrl}#toolbar=1&view=FitH`}
+                src={`${fileUrl}?view=inline#toolbar=1&view=FitH`}
                 title={`PDF: ${title}`}
               />
             </Modal.Body>
@@ -91,7 +91,7 @@ export function PdfViewerButton({
             <Modal.Footer className="justify-between gap-2 border-t border-border/40 bg-surface-secondary/30 px-5 py-3">
               <a
                 className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border/70 px-3.5 text-[11px] font-semibold text-foreground transition-all duration-200 hover:border-tactical/50 hover:bg-tactical/5 hover:text-tactical-bright focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-1"
-                href={fileUrl}
+                href={`${fileUrl}?view=inline`}
                 rel="noreferrer"
                 target="_blank"
               >

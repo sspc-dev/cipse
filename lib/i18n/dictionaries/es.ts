@@ -102,10 +102,10 @@ export const es = {
   },
   media: {
     title: "Multimedia del congreso",
-    eyebrow: "Acervo multimedia & registros oficiales",
-    heroLine1: "Repositorio & actas del",
-    heroHighlight: "XV Congreso Internacional",
-    heroLine2: "contra el secuestro y la extorsión",
+    eyebrow: "Archivos multimedia & registros oficiales",
+    heroLine1: "Memorias del",
+    heroHighlight: "XV Congreso Internacional Policial",
+    heroLine2: "contra el Secuestro y la Extorsión",
     heroDescription:
       "Material oficial del CIPSE XV: conferencias, fotografías y documentos institucionales organizados por jornada y tipo de archivo.",
     stats: {
@@ -144,7 +144,8 @@ export const es = {
     openDocument: "Abrir documento",
     openDocumentAria: "Abrir documento {title} en una pestaña nueva",
     openDocumentPreviewAria: "Abrir vista previa de {title}",
-    featuredLogoAlt: "Logotipo oficial del Congreso Internacional Policial CIPSE XV",
+    featuredLogoAlt:
+      "Logotipo oficial del Congreso Internacional Policial CIPSE XV",
     kinds: {
       image: "Imagen",
       video: "Video",

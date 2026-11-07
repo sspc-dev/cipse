@@ -102,9 +102,9 @@ export const en: Dictionary = {
   media: {
     title: "Congress multimedia",
     eyebrow: "Multimedia archive & official records",
-    heroLine1: "Repository & proceedings of the",
-    heroHighlight: "XV International Congress",
-    heroLine2: "against kidnapping and extortion",
+    heroLine1: "Proceedings of the",
+    heroHighlight: "XV International Police Congress",
+    heroLine2: "against Kidnapping and Extortion",
     heroDescription:
       "Official CIPSE XV material: conferences, photographs and institutional documents organized by activity day and file type.",
     stats: {
@@ -142,7 +142,8 @@ export const en: Dictionary = {
     openDocument: "Open document",
     openDocumentAria: "Open document {title} in a new tab",
     openDocumentPreviewAria: "Open preview of {title}",
-    featuredLogoAlt: "Official logo of the International Police Congress CIPSE XV",
+    featuredLogoAlt:
+      "Official logo of the International Police Congress CIPSE XV",
     kinds: {
       image: "Image",
       video: "Video",
@@ -158,7 +159,8 @@ export const en: Dictionary = {
       prevAria: "Previous file",
       nextAria: "Next file",
       documentPreviewAria: "Document preview of {title}",
-      unsupported: "Preview is not available for this format. Download it to review its contents.",
+      unsupported:
+        "Preview is not available for this format. Download it to review its contents.",
     },
     downloadPackage: "Download package (.ZIP)",
     downloadUnavailable: "Available soon",

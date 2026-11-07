@@ -15,6 +15,9 @@ import {
   CalendarIcon,
   ClockIcon,
   EyeIcon,
+  FilePdfIcon,
+  FilePresentationIcon,
+  FileSpreadsheetIcon,
   FileTextIcon,
   ImageIcon,
   VideoIcon,
@@ -39,9 +42,66 @@ function KindIcon({ kind }: { kind: MediaItem["kind"] }) {
 
 function VideoPlayBadge() {
   return (
-    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25">
-      <span className="flex size-7 items-center justify-center rounded-full bg-black/60 text-white">
-        <VideoIcon aria-hidden="true" className="size-3.5" />
+    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25 transition-colors duration-300 group-hover:bg-black/35">
+      <span className="flex size-8 items-center justify-center rounded-full bg-black/60 text-white transition-transform duration-300 group-hover:scale-110">
+        <VideoIcon aria-hidden="true" className="size-4" />
+      </span>
+    </span>
+  );
+}
+
+/**
+ * Icono representativo del formato del documento. Diferencia hojas de
+ * cálculo, presentaciones y PDF para identificar el tipo de un vistazo.
+ */
+function DocumentKindIcon({ format }: { format: string }) {
+  if (format === "PDF") return <FilePdfIcon className="size-7" />;
+  if (format === "XLS" || format === "XLSX")
+    return <FileSpreadsheetIcon className="size-7" />;
+  if (format === "PPT" || format === "PPTX")
+    return <FilePresentationIcon className="size-7" />;
+  return <FileTextIcon className="size-7" />;
+}
+
+/**
+ * Placeholder para documentos sin miniatura (PDF y formatos de oficina).
+ * Muestra el icono del formato y su etiqueta técnica para que la tarjeta
+ * no quede vacía y el tipo de archivo se identifique de un vistazo.
+ */
+function DocumentThumbnail({
+  tag,
+  tone,
+}: {
+  tag: string;
+  tone: "guinda" | "neutral";
+}) {
+  const isGuinda = tone === "guinda";
+
+  return (
+    <span
+      className={`flex size-full flex-col items-center justify-center gap-2.5 transition-colors ${
+        isGuinda
+          ? "bg-guinda/5 text-guinda group-hover:bg-guinda/10"
+          : "bg-foreground/[0.03] text-muted group-hover:bg-tactical/10 group-hover:text-tactical-bright"
+      }`}
+    >
+      <span
+        className={`flex size-16 items-center justify-center rounded-md border transition-transform duration-300 group-hover:scale-105 ${
+          isGuinda
+            ? "border-guinda/25 bg-guinda/10"
+            : "border-border/70 bg-foreground/5 group-hover:border-tactical/40 group-hover:bg-tactical/10"
+        }`}
+      >
+        <DocumentKindIcon format={tag} />
+      </span>
+      <span
+        className={`rounded border px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider ${
+          isGuinda
+            ? "border-guinda/30 bg-guinda/10 text-guinda"
+            : "border-border/70 bg-foreground/5 text-muted group-hover:border-tactical/40 group-hover:text-tactical-bright"
+        }`}
+      >
+        {tag}
       </span>
     </span>
   );
@@ -82,29 +142,26 @@ function MediaCard({ item }: { item: MediaItem }) {
             <VideoPlayBadge />
           </>
         ) : isPdf ? (
-          <span className="flex size-full flex-col items-center justify-center gap-2.5 bg-guinda/5 text-muted transition-colors group-hover:text-guinda">
-            <span className="flex size-16 items-center justify-center rounded-md border border-guinda/25 bg-guinda/10">
-              <FileTextIcon className="size-7" aria-hidden="true" />
-            </span>
-            <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-guinda">
-              PDF
-            </span>
-          </span>
+          <DocumentThumbnail tag="PDF" tone="guinda" />
         ) : (
-          <span className="flex size-full items-center justify-center text-muted">
-            <KindIcon kind={item.kind} />
-          </span>
+          <DocumentThumbnail tag={mediaFormatTag(item)} tone="neutral" />
         )}
 
-        {/* Badge de formato */}
-        <span className="absolute left-2 top-2 inline-flex items-center rounded border border-tactical/40 bg-surface/85 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider text-tactical-bright backdrop-blur-sm">
-          {mediaFormatTag(item)}
-        </span>
+        {/* Badge de formato: solo para imagen/video; los documentos ya
+            muestran su etiqueta dentro del placeholder central. */}
+        {item.kind !== "document" ? (
+          <span className="absolute left-2 top-2 inline-flex items-center rounded border border-tactical/40 bg-surface/85 px-1.5 py-0.5 font-mono text-[8px] font-bold uppercase tracking-wider text-tactical-bright backdrop-blur-sm">
+            {mediaFormatTag(item)}
+          </span>
+        ) : null}
       </div>
 
       {/* Contenido */}
       <div className="flex flex-1 flex-col gap-2 p-3.5">
-        <h3 className="line-clamp-2 min-h-[2.5em] text-sm font-semibold leading-snug text-foreground">
+        <h3
+          className="line-clamp-2 min-h-[2.5em] text-sm font-semibold leading-snug text-foreground"
+          title={item.title}
+        >
           {item.title}
         </h3>
 
@@ -122,31 +179,33 @@ function MediaCard({ item }: { item: MediaItem }) {
           </span>
         </div>
 
-        {/* Acciones */}
+        {/* Acciones: primaria + editar a la izquierda, eliminar separado a la derecha */}
         <div className="mt-auto flex flex-wrap items-center gap-1.5 border-t border-border/40 pt-2.5">
-          {isPdf ? (
-            <PdfViewerButton
-              fileUrl={mediaFileUrl(item.id)}
+          <div className="flex flex-1 items-center gap-1.5">
+            {isPdf ? (
+              <PdfViewerButton
+                fileUrl={mediaFileUrl(item.id)}
+                title={item.title}
+              />
+            ) : (
+              <a
+                aria-label={`Abrir ${item.title} en pestaña nueva`}
+                className="inline-flex h-8 items-center gap-1 rounded-md border border-border/70 px-2.5 text-[10px] font-semibold text-foreground transition-all duration-200 hover:-translate-y-px hover:border-tactical/50 hover:bg-tactical/5 hover:text-tactical-bright focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-1"
+                href={mediaFileUrl(item.id)}
+                rel="noreferrer"
+                target="_blank"
+              >
+                <EyeIcon className="size-3" aria-hidden="true" />
+                Abrir
+              </a>
+            )}
+            <MediaMetaEdit
+              day={item.day}
+              fileName={item.originalName}
+              id={item.id}
               title={item.title}
             />
-          ) : (
-            <a
-              aria-label={`Abrir ${item.title} en pestaña nueva`}
-              className="inline-flex h-8 items-center gap-1 rounded-md border border-border/70 px-2.5 text-[10px] font-semibold text-foreground transition-all duration-200 hover:-translate-y-px hover:border-tactical/50 hover:bg-tactical/5 hover:text-tactical-bright focus-visible:outline-2 focus-visible:outline-gold/60 focus-visible:outline-offset-1"
-              href={mediaFileUrl(item.id)}
-              rel="noreferrer"
-              target="_blank"
-            >
-              <EyeIcon className="size-3" aria-hidden="true" />
-              Abrir
-            </a>
-          )}
-          <MediaMetaEdit
-            day={item.day}
-            fileName={item.originalName}
-            id={item.id}
-            title={item.title}
-          />
+          </div>
           <MediaDeleteButton id={item.id} title={item.title} />
         </div>
       </div>
