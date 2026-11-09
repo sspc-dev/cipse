@@ -23,7 +23,9 @@
 #
 # Despliegue y rollback a mano en el servidor, desde la raíz del repo:
 #
-#   bash deploy/deploy.sh cipse:sha-<commit>   # release blue-green
+#   bash deploy/deploy.sh cipse:sha-<commit>   # release blue-green; alinea
+#                                              # traefik/db si su config
+#                                              # cambió (up --no-deps)
 #   bash deploy/deploy.sh --rollback           # volver al color anterior
 #
 # Los colores inactivos se recrean solo en su despliegue (up --no-deps app

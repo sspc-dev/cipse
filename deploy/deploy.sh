@@ -15,6 +15,10 @@
 # si existe, no se toca el registry.
 #
 # Secuencia (el colo ACTIVO sigue sirviendo tráfico hasta el final):
+#   0. Alinear la base (traefik/db) al compose vigente: compose solo
+#      recrea contenedores cuya config cambió; sin esto, un traefik viejo
+#      (de una versión anterior del compose) sigue sin cargar el router
+#      del provider file y la verificación da 404 eterno.
 #   1. Restaurar el enrutamiento declarado por el estado (Traefik hot reload)
 #      — protege contra rsync que traiga un app-routing.yml desfasado.
 #   2. APP_IMAGE=<nuevo> pull del color INACTIVO (a/b) y recreate de ese
@@ -132,23 +136,38 @@ running() { # color → true si el contenedor está corriendo
   [[ "$(docker inspect -f '{{.State.Running}}' "$(cid "$1")" 2>/dev/null || true)" == "true" ]]
 }
 
-wait_healthy() { # color
-  local color="$1" cid status deadline=$((SECONDS + HEALTH_TIMEOUT_S))
-  cid="$(cid "$color")"
-  [[ -n "$cid" ]] || die "no hay contenedor del colo app-$color tras el up"
+wait_service_healthy() { # servicio de compose (p. ej. app-a, traefik, db)
+  local service="$1" id status deadline=$((SECONDS + HEALTH_TIMEOUT_S))
+  id="$("${COMPOSE[@]}" ps -q "$service" 2>/dev/null || true)"
+  [[ -n "$id" ]] || die "no hay contenedor de $service tras el up"
   while sleep 3; do
-    status="$(docker inspect -f '{{.State.Health.Status}}' "$cid" 2>/dev/null || echo missing)"
+    status="$(docker inspect -f '{{.State.Health.Status}}' "$id" 2>/dev/null || echo missing)"
     case "$status" in
-      healthy) log "app-$color: HEALTHY"; return 0 ;;
-      unhealthy) die "app-$color: healthcheck UNHEALTHY; revise: docker logs ${cid:0:12}" ;;
+      healthy) log "$service: HEALTHY"; return 0 ;;
+      unhealthy) die "$service: healthcheck UNHEALTHY; revise: docker logs ${id:0:12}" ;;
     esac
-    (( SECONDS >= deadline )) && die "app-$color: healthcheck a $HEALTH_TIMEOUT_S s sin quedar healthy"
+    (( SECONDS >= deadline )) && die "$service: healthcheck a $HEALTH_TIMEOUT_S s sin quedar healthy"
   done
+}
+
+# Trae la base del stack (proxy + db) al compose vigente. Compose es un
+# no-op cuando su config coincide; recrea solo si cambió (p. ej. tras una
+# actualización del compose en el repo) y arranca todo de cero en un host
+# nuevo. Sin esto, un traefik con config/montajes anteriores NO cargaría el
+# router del provider file (app-routing.yml) y la verificación daría 404.
+ensure_infra() {
+  "${COMPOSE[@]}" up -d --no-deps traefik db >/dev/null \
+    || die "no se pudo levantar la base del stack (traefik/db)"
+  wait_service_healthy traefik
+  wait_service_healthy db
 }
 
 # ------------------------------------------------------------- verificación
 # Verifica el endpoint público a través de Traefik desde el propio host.
 # Primero HTTPS directo (:443); si falla, HTTP con -L (redirect a HTTPS).
+# Setea LAST_HTTP_CODE para diagnóstico a posteriori (por ejemplo, 404:
+# ningún router de Traefik encajó; 502: el app falla; 000: ni conecta).
+LAST_HTTP_CODE="?"
 verify_via_traefik() {
   local p hp code
   p="$(grep -E '^TRAEFIK_HTTPS_PORT=' "$ENV_FILE" 2>/dev/null | cut -d= -f2- | tr -d '[:space:]"' || true)"
@@ -156,12 +175,19 @@ verify_via_traefik() {
   # -sS: errors a stderr (suprimido); con -w queda SOLO el código de estado.
   code="$(curl -sS -k --max-time 10 -o /dev/null -w '%{http_code}' "https://127.0.0.1:${hp}${HEALTH_PATH}" 2>/dev/null || true)"
   if [[ "$code" == 200 ]]; then
+    LAST_HTTP_CODE="200"
     log "verificación HTTPS por Traefik: 200 $HEALTH_PATH"
     return 0
   fi
   code="$(curl -sSL -k --max-time 10 -o /dev/null -w '%{http_code}' "http://127.0.0.1:${hp}${HEALTH_PATH}" 2>/dev/null || true)"
+  LAST_HTTP_CODE="$code"
   [[ "$code" == 200 ]] && log "verificación HTTP→HTTPS por Traefik: 200 $HEALTH_PATH" && return 0
   log "$HEALTH_PATH a través de Traefik respondió '$code' (se esperaba 200)" >&2
+  case "$code" in
+    404) log "   404 = ningún router encajó: traefik no cargó el router del provider file." >&2 ;;
+    502|503) log "   $code = el app no responde; revise logs del colo." >&2 ;;
+    000) log "   000 = ni conexión: ¿está traefik arriba y publicando el puerto?" >&2 ;;
+  esac
   return 1
 }
 
@@ -173,7 +199,8 @@ rollback_traffic() { # color  — conmutar de vuelta y asegurar servicio
   write_routing "$color"
   if ! verify_via_traefik; then
     log "WARNING la verificación tras la reversión tampoco pasa; intervención manual" >&2
-    log "             revise traefik: docker compose -f deploy/docker-compose.yml logs traefik" >&2
+    log "             revise traefik (404 = router no cargado; 502 = app caído, logs del color):" >&2
+    log "             docker compose -f deploy/docker-compose.yml -f deploy/docker-compose.tls.yml logs traefik" >&2
   fi
 }
 
@@ -187,7 +214,10 @@ cmd_deploy() { # imagen
     log "primer despliegue detectado: colo destino app-a"
   fi
 
-  # 0. Estado del enrutamiento consistente con el colo vivo (tras rsync).
+  # 0. Base del stack al compose vigente (recrea traefik/db SOLO si su
+  #    config cambió; no-op en releases estables) + restore de enrutamiento.
+  echo "== 0/6 base del stack (traefik/db) alineada al compose vigente =="
+  ensure_infra
   if [[ -n "$active" ]]; then
     write_routing "$active"
     log "enrutamiento restaurado a app-$active"
@@ -212,7 +242,7 @@ cmd_deploy() { # imagen
     || die "up del colo app-$target falló"
 
   echo "== 2/6 healthcheck del app-$target (nuevo) =="
-  wait_healthy "$target"
+  wait_service_healthy "app-$target"
 
   echo "== 3/6 migraciones idempotentes =="
   bash deploy/db-migrate.sh || die "migraciones fallaron; tráfico sigue en $([ -n "$active" ] && echo app-$active || echo el colo previo)"
@@ -228,7 +258,7 @@ cmd_deploy() { # imagen
       rollback_traffic "$active" "$old_image"
       die "despliegue revertido a app-$active; revise logs del nuevo colo: docker compose ... logs app-$target"
     fi
-    die "verificación falló en el primer despliegue; revise: docker compose ... logs app-$target"
+    die "verificación falló en el primer despliegue (código $LAST_HTTP_CODE); revise logs: docker compose ... logs app-$target; si es 404, véa también logs/inspect de traefik"
   fi
 
   echo "== 6/6 congelar colo anterior y estado =="
@@ -258,8 +288,9 @@ cmd_rollback() {
   [[ "$target" != "$active" ]] || die "estado inconsistente: ACTIVE y PREVIOUS son el mismo colo"
 
   echo "== rollback de app-$active → app-$target ($prev_img) =="
+  ensure_infra
   APP_IMAGE="$prev_img" "${COMPOSE[@]}" up -d --no-deps "app-$target" >/dev/null 2>&1 || true
-  wait_healthy "$target"
+  wait_service_healthy "app-$target"
 
   write_routing "$target"
   sleep 2

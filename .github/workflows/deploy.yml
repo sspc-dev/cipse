@@ -39,8 +39,10 @@
 #   - DEPLOY_PATH con .env de producción (copia de deploy/env.example), que
 #     el compose referencia vía env_file y este pipeline NO sincroniza.
 #   - Certificado y llave TLS + pem de OCI en /etc/ssl/certs (deploy/env.example).
-#   - Primer arranque: docker compose --env-file .env -f deploy/docker-compose.yml \
-#       -f deploy/docker-compose.tls.yml up -d
+#   - Primer release: el pipeline lleva el stack entero arriba. deploy.sh
+#     alinea traefik/db al compose vigente (recrea SOLO si su config cambió;
+#     clave tras actualizar el compose en el repo: sin esto, un traefik
+#     viejo no carga el router del provider file y la verificación da 404).
 #
 # Secret/vars requeridas: ninguna obligatoria. Opcional:
 #   vars.DEPLOY_PATH   ruta estable del despliegue (default /opt/cipse)
