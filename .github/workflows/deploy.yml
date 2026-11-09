@@ -90,7 +90,7 @@ jobs:
         run: |
           # El app-routing.yml y el estado del servidor NUNCA se pisan:
           # son producto de deploy.sh, no del repo.
-          mkdir -p "$DEPLOY_PATH/deploy" "$DEPLOY_PATH/db"
+          # mkdir -p "$DEPLOY_PATH/deploy" "$DEPLOY_PATH/db"
           rsync -a --delete \
             --exclude 'dynamic/app-routing.yml' \
             --exclude 'state.env' \
