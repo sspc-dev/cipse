@@ -89,14 +89,18 @@ jobs:
       - name: sincronizar deploy/ y db/ al directorio estable
         run: |
           # El app-routing.yml y el estado del servidor NUNCA se pisan:
-          # son producto de deploy.sh, no del repo.
-          # mkdir -p "$DEPLOY_PATH/deploy" "$DEPLOY_PATH/db"
+          # son producto de deploy.sh, no del repo. Solo si NO existe aún
+          # (primer despliegue) se siembra el valor por defecto del repo;
+          # deploy.sh lo reescribe según el estado en su paso 0.
+          mkdir -p "$DEPLOY_PATH/deploy" "$DEPLOY_PATH/db"
           rsync -a --delete \
             --exclude 'dynamic/app-routing.yml' \
             --exclude 'state.env' \
             deploy/ "$DEPLOY_PATH/deploy/"
           rsync -a --delete \
             db/ "$DEPLOY_PATH/db/"
+          [[ -f "$DEPLOY_PATH/deploy/dynamic/app-routing.yml" ]] || \
+            rsync -a deploy/dynamic/app-routing.yml "$DEPLOY_PATH/deploy/dynamic/"
 
       - name: preflight
         run: |
