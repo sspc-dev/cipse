@@ -1,121 +1,28 @@
-# CIPSE XV — pipeline de despliegue auto-hospedado (blue-green).
-#
-# Todo corre en el MISMO servidor que el app, desde UN ÚNICO directorio de
-# trabajo estable (DEPLOY_PATH, default /opt/cipse): es al mismo tiempo el
-# checkout del código y el hogar del despliegue (.env, estado, certs y el
-# stack Traefik+MySQL). No hay rsync, ni registry, ni SSH, ni secrets.
-#
-# Flujo por release:
-#   1. prep:      asegura el directorio de trabajo (mkdir -p).
-#   2. build:     docker build -t cipse:sha-<commit> -t cipse:latest .
-#                 La puerta de calidad (pnpm lint) corre DENTRO del build
-#                 de la imagen (Dockerfile): no se necesita node/pnpm en
-#                 el host.
-#   3. sync:      el código llega al directorio de trabajo con GIT, no con
-#                 rsync: init si falta, remote si falta, fetch con el token
-#                 efímero del run (github.token via env GIT_CONFIG, nunca
-#                 en la línea de comandos) y git reset --hard <ref>.
-#                 reset NO toca archivos sin seguimiento: el .env del
-#                 servidor, el estado blue-green (deploy/state.env) y el
-#                 enrutamiento de Traefik (deploy/dynamic/app-routing.yml,
-#                 que deploy.sh regenera en el paso 0) sobreviven intactos.
-#   4. release:   bash deploy/deploy.sh cipse:sha-<commit>
-#                 (preflight incluido dentro del script). Blue-green:
-#                 recreate del color inactivo, healthcheck, migraciones
-#                 idempotentes, conmutación Traefik (provider file, hot
-#                 reload), verificación vía HTTPS y conservar el color
-#                 anterior parado para rollback. Alinea traefik/db si su
-#                 config cambió.
-#
-# Rollback manual: Run workflow → action = rollback (no reconstruye; no
-# resincroniza código; regresa al colo PREVIOUS con el tag guardado).
-#
-# Concurrency sin cancelación: un release a mitad de migración no debe
-# interrumpirse, así que los envíos se encolan. Environment "production".
-#
-# Requisitos del servidor (una vez, manual):
-#   - Actions runner auto-hospedado registrado como servicio (usuario con
-#     permisos de docker y git en su PATH).
-#   - El directorio de trabajo puede NACER VACÍO: el pipeline lo inicializa
-#     (git init + fetch + reset) y deploy.sh levanta la base del stack y los
-#     colores por su cuenta; no hace falta ningún up manual previo.
-#   - <DEPLOY_PATH>/.env de producción (copia de deploy/env.example): el
-#     compose lo referencia vía env_file y su contenido es config del
-#     servidor, NO del repo.
-#   - Certificado y llave TLS + pem de OCI en /etc/ssl/certs (deploy/env.example).
-#
-# Secret/vars requeridas: ninguna. Opcional:
-#   vars.DEPLOY_PATH   ruta estable del despliegue (default /opt/cipse)
-#
 name: deploy
-
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
-    inputs:
-      action:
-        description: "Desplegar la rama actual (deploy) o revertir al colo anterior (rollback)"
-        required: true
-        default: deploy
-        type: choice
-        options:
-          - deploy
-          - rollback
-
-concurrency:
-  group: deploy
-  # No cancelamos el release en curso: dejarlo terminar evita quedarse
-  # dentro de una migración o una conmutación de Traefik.
-  cancel-in-progress: false
-
-permissions:
-  contents: read  # solo lectura: el fetch del código usa github.token
-
-env:
-  DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/cipse' }}
-
+    branches:
+      - main
 jobs:
-  deploy:
-    environment: production
+  ci:
     runs-on: self-hosted
     steps:
-      - name: directorio de trabajo
-        run: mkdir -p "$DEPLOY_PATH"
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10.34
+          runtime: node@22
+          cache: true
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Checkout code
+        run: pnppm lint
 
-      - name: build de la imagen
-        working-directory: ${{ env.DEPLOY_PATH }}
-        env:
-          SHA: ${{ github.sha }}
-        run: |
-          docker build -t "cipse:sha-$SHA" -t cipse:latest .
+      - name: Build to production
+        run: pnpm build
 
-      - name: sync del código con git (preserva .env y estado del servidor)
-        working-directory: ${{ env.DEPLOY_PATH }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GH_REF: ${{ github.ref }}          # p. ej. refs/heads/main
-          GH_REPO_URL: https://github.com/${{ github.repository }}.git
-        run: |
-          [[ -d .git ]] || { git init -q; git remote add origin "$GH_REPO_URL"; }
-          git remote set-url origin "$GH_REPO_URL"
-          # Token solo en el entorno del proceso git (GIT_CONFIG_COUNT), nunca
-          # en la línea de comandos (ps) ni escrito en .git/config.
-          export GIT_CONFIG_COUNT=1
-          export GIT_CONFIG_KEY_0="url.https://x-access-token:$GITHUB_TOKEN@github.com/.insteadOf"
-          export GIT_CONFIG_VALUE_0="https://github.com/"
-          git fetch --force origin "$GH_REF"
-          git reset --hard FETCH_HEAD
-          git log --oneline -1
-
-      - name: release blue-green
-        working-directory: ${{ env.DEPLOY_PATH }}
-        env:
-          SHA: ${{ github.sha }}
-        run: |
-          action="${{ inputs.action || 'deploy' }}"
-          if [[ "$action" == "rollback" ]]; then
-            bash deploy/deploy.sh --rollback
-          else
-            bash deploy/deploy.sh "cipse:sha-$SHA"
-          fi
+  cd:
+    runs-on: self-hosted
+    needs: ci
+    steps:
+      - name: Build Docker image
+        run: docker compose --env-file .env -f deploy/docker-compose.yml -f deploy/docker-compose.tls.yml up --build
