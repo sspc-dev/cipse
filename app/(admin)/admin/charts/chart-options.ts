@@ -46,7 +46,7 @@ function baseTooltip(palette: Palette) {
     borderColor: palette.border,
     borderWidth: 1,
     padding: [8, 10] as [number, number],
-    textStyle: { color: palette.foreground, fontSize: 11 },
+    textStyle: { color: "#f4f6f7", fontSize: 11 },
     axisPointer: { type: "line" as const, lineStyle: { opacity: 0.3 } },
   };
 }

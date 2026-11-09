@@ -5,7 +5,6 @@ import { Chip, Modal } from "@heroui/react";
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  DownloadIcon,
   FileTextIcon,
 } from "@/components/icons";
 import { formatMessage, type Dictionary } from "@/lib/i18n";
@@ -89,7 +88,11 @@ export function MediaPreviewDialog({
               </Modal.Header>
 
               <Modal.Body className="relative p-0">
-                <div key={item.id} className="pop-in">
+                <div
+                  className="pop-in"
+                  key={item.id}
+                  onContextMenu={(event) => event.preventDefault()}
+                >
                   {item.kind === "video" ? (
                     <video
                       aria-label={formatMessage(copy.modal.videoAria, {
@@ -98,6 +101,10 @@ export function MediaPreviewDialog({
                       autoPlay
                       className="max-h-[70vh] w-full bg-black"
                       controls
+                      controlsList="nodownload noplaybackrate"
+                      disablePictureInPicture
+                      draggable={false}
+                      onContextMenu={(event) => event.preventDefault()}
                       playsInline
                       src={mediaFileUrl(item.id)}
                     />
@@ -117,7 +124,9 @@ export function MediaPreviewDialog({
                       alt={formatMessage(copy.modal.imageAlt, {
                         title: item.title,
                       })}
-                      className="max-h-[70vh] w-full bg-black object-contain"
+                      className="max-h-[70vh] w-full select-none bg-black object-contain"
+                      draggable={false}
+                      onContextMenu={(event) => event.preventDefault()}
                       src={mediaFileUrl(item.id)}
                     />
                   ) : isUnsupportedDocument ? (
@@ -158,14 +167,9 @@ export function MediaPreviewDialog({
                 <p className="text-[11px] text-neutral-400">
                   {copy.modal.meta} · {formatMediaSize(item.sizeBytes)}
                 </p>
-                <a
-                  className="inline-flex items-center gap-2 rounded-full bg-gold px-4 py-2 text-[11px] font-bold text-neutral-950 transition-colors hover:bg-gold-ceremonial"
-                  download={item.originalName}
-                  href={mediaFileUrl(item.id)}
-                >
-                  <DownloadIcon className="size-3.5" aria-hidden="true" />
-                  {copy.modal.download}
-                </a>
+                <p className="font-mono text-[10px] tracking-wider text-neutral-500 uppercase">
+                  {copy.securityNote}
+                </p>
               </Modal.Footer>
             </>
           ) : null}

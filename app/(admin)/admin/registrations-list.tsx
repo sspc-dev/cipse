@@ -19,18 +19,13 @@ import {
   type AccreditationListRow,
   type AttendanceFilterKind,
 } from "@/lib/features/admin/datasource";
+import { isoDayInCongressTime } from "@/lib/features/admin/dates";
 import { listHref } from "./list-href";
 
 export { listHref };
 import { CONGRESS_TIME_ZONE } from "@/lib/constants";
 import { RowCheckinButton } from "./row-checkin-button";
 import { RowQrDownloadButton } from "./row-qr-download-button";
-
-const dateTimeFormatter = new Intl.DateTimeFormat("es-MX", {
-  dateStyle: "short",
-  timeStyle: "short",
-  timeZone: CONGRESS_TIME_ZONE,
-});
 
 const dayLabelFormatter = new Intl.DateTimeFormat("es-MX", {
   weekday: "short",
@@ -63,13 +58,15 @@ function initialsOf(name: string, lastname: string): string {
 
 type RegistrationCardProps = {
   registration: AccreditationListRow;
+  /** Día actual del congreso (YYYY-MM-DD) para resaltar la asistencia de hoy. */
+  todayIso: string;
 };
 
 /**
  * Ficha de participante: avatar de iniciales, folio, país, correo, estado de
  * asistencia y acciones de credencial / impresión / check-in manual.
  */
-function RegistrationCard({ registration }: RegistrationCardProps) {
+function RegistrationCard({ registration, todayIso }: RegistrationCardProps) {
   const folio = folioLabel(registration.id);
   const label = `${registration.name} ${registration.lastname}`;
   const countryName = countryDisplayName(registration.country, "es");
@@ -138,7 +135,7 @@ function RegistrationCard({ registration }: RegistrationCardProps) {
       </a>
 
       <div className="mt-auto flex flex-col gap-3 border-t border-border/60 pt-3">
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] leading-relaxed text-muted/85">
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] leading-relaxed text-muted/85">
           <span className="inline-flex items-center gap-1">
             <CalendarIcon
               aria-hidden="true"
@@ -146,14 +143,33 @@ function RegistrationCard({ registration }: RegistrationCardProps) {
             />
             {dayLabelFormatter.format(new Date(registration.createdAt))}
           </span>
-          {registration.attendanceDays > 0 && registration.lastAttendanceAt ? (
-            <span className="inline-flex items-center gap-1">
+          {registration.attendanceDates.length > 0 ? (
+            <span className="inline-flex flex-wrap items-center gap-1">
               <ClockIcon
                 aria-hidden="true"
                 className="size-3 text-muted/70"
               />
-              Última:{" "}
-              {dateTimeFormatter.format(registration.lastAttendanceAt)}
+              <span className="text-muted/70">Asistencia:</span>
+              {registration.attendanceDates.map((iso) => {
+                const isToday = iso === todayIso;
+                const label = dayLabelFormatter.format(
+                  new Date(`${iso}T12:00:00Z`),
+                );
+
+                return (
+                  <span
+                    className={
+                      isToday
+                        ? "inline-flex items-center rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-accent-soft-foreground"
+                        : "inline-flex items-center rounded-full border border-border bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted"
+                    }
+                    key={iso}
+                    title={isToday ? `Asistencia de hoy · ${label}` : label}
+                  >
+                    {isToday ? "hoy" : label}
+                  </span>
+                );
+              })}
             </span>
           ) : null}
         </p>
@@ -260,6 +276,7 @@ export async function RegistrationsList({
 
   const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
   const page = Math.min(query.page, totalPages);
+  const todayIso = isoDayInCongressTime(new Date());
 
   function pageHref(target: number): string {
     return listHref({
@@ -309,7 +326,10 @@ export async function RegistrationsList({
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {rows.map((registration) => (
               <li key={registration.id} className="h-full">
-                <RegistrationCard registration={registration} />
+                <RegistrationCard
+                  registration={registration}
+                  todayIso={todayIso}
+                />
               </li>
             ))}
           </ul>

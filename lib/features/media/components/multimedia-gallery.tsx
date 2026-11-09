@@ -1,10 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Button, SearchField, ToggleButton } from "@heroui/react";
+import { SearchField, ToggleButton } from "@heroui/react";
 import {
   ChevronRightIcon,
-  DownloadIcon,
   FilePdfIcon,
   FilePresentationIcon,
   FileSpreadsheetIcon,
@@ -230,14 +229,7 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
           />
         )}
 
-        <div className="mt-2 flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <Button isDisabled size="sm" variant="secondary">
-            <DownloadIcon className="size-4" aria-hidden="true" />
-            {copy.downloadPackage}
-            <span className="ml-1 rounded-full bg-foreground/10 px-2 py-0.5 text-[10px] font-semibold text-muted">
-              {copy.downloadUnavailable}
-            </span>
-          </Button>
+        <div className="mt-2 flex flex-col gap-3 border-t border-border/60 pt-5 sm:flex-row sm:items-center sm:justify-end">
           <p className="font-mono text-[10px] tracking-wider text-muted uppercase">
             {copy.securityNote}
           </p>
@@ -305,13 +297,18 @@ function MediaCard({
       aria-label={formatMessage(copy.openAria, { title: item.title })}
       className="glass-soft group flex flex-col overflow-hidden rounded-xl border border-border text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/60 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:ring-2 focus-visible:ring-gold focus-visible:outline-none"
       onClick={() => onOpen(item)}
+      onContextMenu={(event) => event.preventDefault()}
       type="button"
     >
       <span className="relative block aspect-[4/3] w-full overflow-hidden bg-black">
         {isVideo ? (
           <video
-            className="size-full object-cover brightness-90 transition-transform duration-700 group-hover:scale-105"
+            className="size-full select-none object-cover brightness-90 transition-transform duration-700 group-hover:scale-105"
+            controlsList="nodownload noplaybackrate"
+            disablePictureInPicture
+            draggable={false}
             muted
+            onContextMenu={(event) => event.preventDefault()}
             playsInline
             preload="metadata"
             src={mediaFileUrl(item.id)}
@@ -321,8 +318,10 @@ function MediaCard({
           /* eslint-disable-next-line @next/next/no-img-element */
           <img
             alt={item.title}
-            className="size-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="size-full select-none object-cover transition-transform duration-700 group-hover:scale-105"
+            draggable={false}
             loading="lazy"
+            onContextMenu={(event) => event.preventDefault()}
             src={mediaFileUrl(item.id)}
           />
         )}
@@ -383,7 +382,7 @@ function DocumentFormatIcon({ format }: { format: string }) {
   return <FileTextIcon className="size-5" aria-hidden="true" />;
 }
 
-/** Los PDF se ven en el visor; el resto de formatos abren en pestaña nueva. */
+/** Todos los documentos abren la vista previa; los no compatibles muestran un aviso interno. */
 function DocumentCard({
   copy,
   item,
@@ -393,12 +392,18 @@ function DocumentCard({
   item: MediaViewItem;
   onOpen: (item: MediaViewItem) => void;
 }) {
-  const isPdf = item.mime === "application/pdf";
   const cardClassName =
     "group flex h-full flex-col rounded-xl border border-border bg-linear-to-br from-tactical/85 to-[#082e22]/85 p-5 shadow-2xl backdrop-blur-md transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-[0_12px_40px_-10px_rgba(197,155,39,0.45)] hover:ring-2 hover:ring-gold/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold";
 
-  const content = (
-    <>
+  return (
+    <button
+      aria-label={formatMessage(copy.openDocumentPreviewAria, {
+        title: item.title,
+      })}
+      className={cardClassName}
+      onClick={() => onOpen(item)}
+      type="button"
+    >
       <span className="flex items-start justify-between gap-3">
         <span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/10 text-gold-ceremonial transition-colors duration-300 group-hover:border-gold/40 group-hover:bg-gold/15">
           <DocumentFormatIcon format={mediaFormatTag(item)} />
@@ -428,33 +433,6 @@ function DocumentCard({
           />
         </span>
       </span>
-    </>
-  );
-
-  if (isPdf) {
-    return (
-      <button
-        aria-label={formatMessage(copy.openDocumentPreviewAria, {
-          title: item.title,
-        })}
-        className={cardClassName}
-        onClick={() => onOpen(item)}
-        type="button"
-      >
-        {content}
-      </button>
-    );
-  }
-
-  return (
-    <a
-      aria-label={formatMessage(copy.openDocumentAria, { title: item.title })}
-      className={cardClassName}
-      href={mediaFileUrl(item.id)}
-      rel="noreferrer"
-      target="_blank"
-    >
-      {content}
-    </a>
+    </button>
   );
 }

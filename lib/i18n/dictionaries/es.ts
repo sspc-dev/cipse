@@ -142,7 +142,6 @@ export const es = {
       "Seleccione «Todos» o elija otra jornada para revisar más material oficial.",
     openAria: "Abrir {title}",
     openDocument: "Abrir documento",
-    openDocumentAria: "Abrir documento {title} en una pestaña nueva",
     openDocumentPreviewAria: "Abrir vista previa de {title}",
     featuredLogoAlt:
       "Logotipo oficial del Congreso Internacional Policial CIPSE XV",
@@ -156,17 +155,14 @@ export const es = {
       meta: "Canal oficial del congreso · Archivo verificado",
       imageAlt: "Vista de alta resolución de {title}",
       videoAria: "Reproducción de {title}",
-      download: "Descargar archivo oficial",
       closeAria: "Cerrar vista previa",
       prevAria: "Archivo anterior",
       nextAria: "Archivo siguiente",
       documentPreviewAria: "Vista previa del documento {title}",
       unsupported:
-        "Vista previa no disponible para este formato. Descárguelo para revisar su contenido.",
+        "Vista previa no disponible para este formato. Consulte el material con el equipo organizador del congreso.",
     },
-    downloadPackage: "Descargar paquete (.ZIP)",
-    downloadUnavailable: "Disponible próximamente",
-    securityNote: "Descarga individual por archivo · Servidores oficiales",
+    securityNote: "Material exclusivamente para visualización · CIPSE XV",
     footer: "Gobierno de México · SSPC — CIPSE XV · Multimedia",
   },
   checkin: {

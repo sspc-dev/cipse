@@ -14,6 +14,8 @@ export type AccreditationListRow = {
   attendanceDays: number;
   attendedToday: boolean;
   lastAttendanceAt: Date | null;
+  /** Días del congreso con asistencia registrada (YYYY-MM-DD, ascendente). */
+  attendanceDates: string[];
 };
 
 type AccreditationListRowPacket = RowDataPacket & {
@@ -27,6 +29,7 @@ type AccreditationListRowPacket = RowDataPacket & {
   attendance_days: number;
   attended_today: number;
   last_attendance_at: Date | null;
+  attendance_dates: string | null;
 };
 
 function mapRow(row: AccreditationListRowPacket): AccreditationListRow {
@@ -41,6 +44,9 @@ function mapRow(row: AccreditationListRowPacket): AccreditationListRow {
     attendanceDays: Number(row.attendance_days ?? 0),
     attendedToday: Number(row.attended_today ?? 0) > 0,
     lastAttendanceAt: row.last_attendance_at,
+    attendanceDates: row.attendance_dates
+      ? row.attendance_dates.split(",").filter(Boolean)
+      : [],
   };
 }
 
@@ -141,7 +147,9 @@ export async function listAccreditations(
                 SELECT 1 FROM attendance_records t
                 WHERE t.accreditation_id = a.id AND t.attended_on = CURDATE()
               ) AS attended_today,
-              MAX(r.attended_at) AS last_attendance_at
+              MAX(r.attended_at) AS last_attendance_at,
+              GROUP_CONCAT(DISTINCT DATE_FORMAT(r.attended_on, '%Y-%m-%d')
+                           ORDER BY r.attended_on) AS attendance_dates
        FROM accreditations a
        LEFT JOIN attendance_records r ON r.accreditation_id = a.id
        ${combined.whereClause}

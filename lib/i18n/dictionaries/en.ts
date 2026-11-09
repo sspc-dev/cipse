@@ -140,7 +140,6 @@ export const en: Dictionary = {
       "Select “All” or choose another day to browse more official material.",
     openAria: "Open {title}",
     openDocument: "Open document",
-    openDocumentAria: "Open document {title} in a new tab",
     openDocumentPreviewAria: "Open preview of {title}",
     featuredLogoAlt:
       "Official logo of the International Police Congress CIPSE XV",
@@ -154,17 +153,14 @@ export const en: Dictionary = {
       meta: "Official congress channel · Verified file",
       imageAlt: "High-resolution view of {title}",
       videoAria: "Playback of {title}",
-      download: "Download official file",
       closeAria: "Close preview",
       prevAria: "Previous file",
       nextAria: "Next file",
       documentPreviewAria: "Document preview of {title}",
       unsupported:
-        "Preview is not available for this format. Download it to review its contents.",
+        "Preview is not available for this format. Please check the material with the congress organizing team.",
     },
-    downloadPackage: "Download package (.ZIP)",
-    downloadUnavailable: "Available soon",
-    securityNote: "Individual file download · Official servers",
+    securityNote: "View-only material · CIPSE XV",
     footer: "Government of Mexico · SSPC — CIPSE XV · Multimedia",
   },
   checkin: {

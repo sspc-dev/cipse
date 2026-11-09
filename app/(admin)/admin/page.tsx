@@ -291,21 +291,32 @@ async function AdminContent({
       "absolute inset-0 opacity-[0.12] bg-[linear-gradient(to_right,rgba(255,255,255,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(90%_75%_at_50%_45%,black,transparent)]";
 
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12">
-        <Image
-          fill
-          priority
-          alt=""
+      <main className="relative flex min-h-dvh items-center justify-center px-4 py-12">
+        <div
           aria-hidden="true"
-          className="ken-burns object-cover object-center"
-          sizes="100vw"
-          src="/imgs/bg-register.jpeg"
-        />
+          className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
+        >
+          <div className="absolute -inset-3">
+            <Image
+              fill
+              priority
+              alt=""
+              className="ken-burns object-cover object-center"
+              sizes="100vw"
+              src="/imgs/bg-register.jpeg"
+            />
+          </div>
 
-        <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/5 to-black/60 backdrop-blur-[2px] dark:from-[#070b11]/95 dark:via-[#070b11]/80 dark:to-[#06090e]/65" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/5 to-black/60 backdrop-blur-[2px] dark:from-[#070b11]/95 dark:via-[#070b11]/80 dark:to-[#06090e]/65" />
 
-        <div className={loginGridOverlayClass} />
-        <div className="reveal absolute inset-x-4 top-10 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white/20 px-3 py-2 backdrop-blur-3xl shadow [animation-delay:150ms] sm:inset-x-8">
+          <div className={loginGridOverlayClass} />
+          <div className="ambient-drift absolute -top-24 -left-24 size-96 rounded-full bg-tactical/30 blur-[130px]" />
+          <div className="ambient-drift-slow absolute -right-24 bottom-0 size-[28rem] rounded-full bg-guinda/25 blur-[140px]" />
+          <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-gold/40 to-transparent" />
+          <div className="absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-[#06090e] via-[#06090e]/40 to-transparent" />
+        </div>
+
+        <div className="reveal absolute inset-x-4 top-10 z-10 mx-auto flex max-w-6xl items-center justify-between gap-3 rounded-xl border border-gold/25 bg-white/20 px-3 py-2 backdrop-blur-3xl shadow [animation-delay:150ms] sm:inset-x-8">
           <Image
             src="/imgs/SSPC_logo.png"
             alt="Logo de la Secretaría de Seguridad y Protección Ciudadana"
@@ -323,10 +334,6 @@ async function AdminContent({
             className="h-10 w-auto"
           />
         </div>
-        <div className="ambient-drift absolute -top-24 -left-24 size-96 rounded-full bg-tactical/30 blur-[130px]" />
-        <div className="ambient-drift-slow absolute -right-24 bottom-0 size-[28rem] rounded-full bg-guinda/25 blur-[140px]" />
-        <div className="absolute inset-x-0 top-0 h-px z-10 bg-linear-to-r from-transparent via-gold/40 to-transparent" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-[#06090e] via-[#06090e]/40 to-transparent" />
 
         <div className="relative z-10 w-full max-w-md">
           <div className="card-enter overflow-hidden rounded-[22px] border border-border bg-surface/85 shadow-[0_30px_80px_-30px_rgba(16,24,29,0.4)] backdrop-blur-xl dark:border-white/10 dark:shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)]">
