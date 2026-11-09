@@ -14,6 +14,8 @@
 #     obsoletos que apunten a rutas inexistentes;
 #   - no hay contenedores antiguos registrando el router `cipse` (causa
 #     "router defined multiple times with different configurations");
+#   - el app-routing.yml del provider file existe y apunta a un color
+#     existente (app-a o app-b);
 #   - no quedan directorios vacíos creados por Docker en /etc/ssl.
 #
 # --fix aplica solo acciones seguras e idempotentes:
@@ -166,9 +168,12 @@ else
 fi
 
 echo "== contenedores con el router 'cipse' =="
+# El router vive ahora en el provider file (app-routing.yml); las labels
+# solo sobreviven en contenedores legacy que rescatan el docker de antes.
+# Excluimos los apps del stack actual (app-a/app-b) por nombre de servicio.
 mapfile -t conflicting < <(docker ps -a \
   --filter 'label=traefik.http.routers.cipse.rule' \
-  --format '{{.Names}}' 2>/dev/null | grep -vE '^cipse-prod-app-[0-9]+$' || true)
+  --format '{{.Names}}' 2>/dev/null | grep -vE '^cipse-prod-app-[ab]-[0-9]+$' || true)
 if [[ ${#conflicting[@]} -eq 0 || -z "${conflicting[0]}" ]]; then
   ok "no hay contenedores ajenos registrando el router 'cipse'"
 else
@@ -183,6 +188,17 @@ else
       fi
     fi
   done
+fi
+
+echo "== enrutamiento del app (provider file) =="
+routing_file="$ROOT_DIR/deploy/dynamic/app-routing.yml"
+if [[ ! -f "$routing_file" ]]; then
+  err "no existe $routing_file (Traefik no tendría router para el app); sincronice deploy/ desde el repo"
+elif ! grep -q 'http://app-[ab]:3000' "$routing_file"; then
+  err "$routing_file no apunta a app-a ni app-b; regenere con deploy.sh o restaure el repo"
+else
+  color="$(grep -oE 'http://app-[ab]:3000' "$routing_file" | head -n1 | cut -d/ -f3 | cut -d: -f1 | cut -c5 )"
+  ok "$routing_file → colo activo app-$color"
 fi
 
 echo "== directorios vacíos creados por Docker en /etc/ssl =="

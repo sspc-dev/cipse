@@ -30,6 +30,11 @@ COPY . .
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Puerta de calidad del pipeline (self-hosted): el lint corre dentro del
+# build de la imagen, sin necesidad de node/pnpm en el host del servidor.
+# Falla el release ante errores de eslint/tipado antes de tocar el stack.
+RUN pnpm lint
+
 RUN pnpm build
 
 # ---------------------------------------------------------------- prod-deps

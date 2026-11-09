@@ -1,7 +1,8 @@
-# CIPSE XV — configuración dinámica de Traefik (provider file).
+# CIPSE XV — configuración dinámica de Traefik: TLS y redirect permanente.
 #
-# Cargada por deploy/docker-compose.tls.yml desde
-# /etc/traefik/dynamic/tls.yml. Define:
+# Provider file: Traefik vigila el directorio /etc/traefik/dynamic, alimentado
+# por deploy/docker-compose.tls.yml monta el directorio deploy/dynamic/.
+# Define:
 #
 #   tls:    certificado y llave privados de xv-cipse.sspc.gob.mx montados
 #           en /run/certs/cipse dentro del contenedor de Traefik; la

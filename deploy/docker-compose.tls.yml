@@ -20,10 +20,7 @@
 #
 # Uso (desde la raíz del repo):
 #   bash deploy/preflight.sh --fix    # valida rutas/archivos y router único
-#   docker compose --env-file .env \
-#     -f deploy/docker-compose.yml \
-#     -f deploy/docker-compose.tls.yml \
-#     up -d
+#   bash deploy/deploy.sh <imagen>    # despliegue automatizado (pipeline)
 #
 # Si una de las rutas apunta a un directorio, Traefik falla con
 # "read /run/certs/cipse/cert.pem: is a directory": Docker crea un
@@ -31,7 +28,7 @@
 # lo detecta y --fix lo elimina.
 #
 # Sin TLS (solo el compose base) el acceso continúa por HTTP :80; con el
-# overlay todo HTTP redirige permanente a HTTPS (deploy/dynamic.yml).
+# overlay todo HTTP redirige permanente a HTTPS (deploy/dynamic/tls.yml).
 #
 # Portadas de puertos son independientes del compose base: este archivo
 # añade 443 pero respeta TRAEFIK_HTTP_PORT (p. ej. si el host ya ocupa :80).
@@ -40,14 +37,16 @@ services:
   traefik:
     restart: unless-stopped
     # El command de un overlay REEMPLAZA por completo el del base: hay que
-    # redeclarar todas las opciones y añadir websecure + provider file.
+    # redeclarar todas las opciones y añadir websecure. El provider file
+    # (deploy/dynamic/) ya se declara en el base.
     command:
       - --entryPoints.web.address=:80
       - --entryPoints.websecure.address=:443
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=cipse-prod_internal
-      # Configuración dinámica: directorio con tls.yml (deploy/dynamic.yml).
+      # Configuración dinámica: directorio con tls.yml (certificados y
+      # redirect) y app-routing.yml (colo activo del app).
       - --providers.file.directory=/etc/traefik/dynamic
       - --api=false
       - --ping=true
@@ -56,9 +55,8 @@ services:
       - "${TRAEFIK_HTTP_PORT:-80}:80"
       - "${TRAEFIK_HTTPS_PORT:-443}:443"
     volumes:
-      # Heredados del base: socket docker (read-only) y datos de Traefik.
-      # dynamic.yml con los certificados; los bind mounts son read-only.
-      - ./dynamic.yml:/etc/traefik/dynamic/tls.yml:ro
+      # Heredados del base: socket docker (read-only), datos de Traefik y
+      # configs dinámicas (deploy/dynamic/).
       # Rutas del certificado y de la llave en el host → dentro de Traefik.
       # Por defecto se leen de /etc/ssl/certs; TLS_*_HOST_PATH permite
       # sobreescribir la ruta sin editar este archivo.
@@ -77,9 +75,3 @@ services:
         bind:
           create_host_path: false
 
-  app:
-    labels:
-      # Router del app movido al entrypoint websecure; el resto de labels
-      # (rule, priority, service, network) se heredan del compose base.
-      - traefik.http.routers.cipse.entrypoints=websecure
-      - traefik.http.routers.cipse.tls=true

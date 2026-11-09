@@ -1,29 +1,44 @@
 # CIPSE XV — stack de producción con Traefik incluido.
 #
-# - traefik: proxy del stack; publica HTTP :80 en el host y registra el app
-#   vía provider docker (labels). Sin TLS/dominio: acceso por IP.
-# - app:     imagen construida desde el Dockerfile del repo (servidor
-#   completo `next start` para conservar el proxy de idioma).
+# - traefik: proxy del stack; publica HTTP :80 en el host y registra el
+#   enrutamiento del app vía provider file (deploy/dynamic/). Sin TLS/dominio:
+#   acceso por IP.
+# - app-a / app-b: contenedores idénticos del app, mismo código, que
+#   alternan el rol activo (blue-green). Quién recibe el tráfico lo decide
+#   el service del archivo deploy/dynamic/app-routing.yml; el cambio es una
+#   reescritura del archivo que Traefik recarga en caliente y con
+#   Dockerfile HEALTHCHECK en cada contenedor para verificarla.
 # - db:      mysql:8.4 con volumen dedicado; db/sql inicializa volúmenes
 #   nuevos.
 #
-# Router sin dominio: PathPrefix(/) sobre el entrypoint web (:80).
+# Imagen: los servicios NO construyen en cada despliegue; consumen la
+# imagen congelada por el pipeline self-hosted (.github/workflows/deploy.yml),
+# que el Actions runner del PROPIO servidor construye con docker build y
+# etiqueta cipse:sha-<commit> en el almacén local de Docker:
+#
+#   APP_IMAGE=cipse:sha-<commit>   (deploy.sh la fija por entorno)
+#
+# El valor por defecto, ghcr.io/duartedc/cipse:latest, queda como respaldo
+# para despliegues manuales desde un registry.
+#
+# Despliegue y rollback a mano en el servidor, desde la raíz del repo:
+#
+#   bash deploy/deploy.sh cipse:sha-<commit>   # release blue-green
+#   bash deploy/deploy.sh --rollback           # volver al color anterior
+#
+# Los colores inactivos se recrean solo en su despliegue (up --no-deps app
+# del color destino): el contenedor activo NUNCA se recrea durante un
+# release, por eso no hay downtime.
 #
 # Con dominio y TLS (xv-cipse.sspc.gob.mx), añada el overlay
 # deploy/docker-compose.tls.yml: habilita :443, monta el certificado y la
 # llave desde /etc/ssl/certs (sobreescribibles con TLS_CERT_HOST_PATH y
 # TLS_KEY_HOST_PATH) y redirige HTTP a HTTPS:
 #
-#   docker compose --env-file .env \
-#     -f deploy/docker-compose.yml \
-#     -f deploy/docker-compose.tls.yml \
-#     up -d
+#   bash deploy/deploy.sh <imagen>      # ya usa ambos archivos con TLS
 #
 # Fuente única de configuración: el .env de la raíz del repo alimenta la app
 # (env_file) y la base de datos (env_file + valores por defecto seguros).
-# `--env-file .env` hace además que Compose use ese archivo para interpolar
-# variables del propio compose (p. ej. TRAEFIK_HTTP_PORT): sin esa bandera
-# Compose solo mira deploy/.env, que no existe.
 #
 # Rutas de archivos en el host (valores por defecto; no requieren variables):
 #   /etc/ssl/certs/oci.pem                  → /run/secrets/oci/key.pem (app)
@@ -34,23 +49,19 @@
 # rutas que son directorios en lugar de archivos — Docker crea un directorio
 # vacío cuando el origen de un bind mount no existe y Traefik falla luego
 # con "read /run/certs/cipse/cert.pem: is a directory" — overrides
-# obsoletos en .env y contenedores antiguos que duplican el router `cipse`:
+# obsoletos en .env, contenedores antiguos que duplican el router `cipse`
+# y un app-routing.yml apuntando a un color inexistente:
 #
 #   bash deploy/preflight.sh          # comprobar
 #   bash deploy/preflight.sh --fix    # comprobar y corregir
 #
-# Uso (desde la raíz del repo):
-#   docker compose --env-file .env -f deploy/docker-compose.yml up -d --build
+# Esquema MySQL: si el volumen ya estaba inicializado con versiones
+# anteriores, sincronícelo con (idempotente, repetible):
+#   bash deploy/db-migrate.sh
 #
 # Alta del primer acreditador (credenciales desde el env del contenedor):
-#   docker compose --env-file .env -f deploy/docker-compose.yml run --rm app \
-#     node scripts/create-admin.mjs
-#
-# Volumen ya inicializado con versiones anteriores (docker-entrypoint-initdb.d
-# solo se ejecuta al crear el volumen; faltan tablas/columnas nuevas):
-# sincronice el esquema con el runner. Las migraciones son idempotentes, así
-# que es seguro repetirlo:
-#   bash deploy/db-migrate.sh
+#   docker compose --env-file .env -f deploy/docker-compose.yml \
+#     -f deploy/docker-compose.tls.yml run --rm app-a node scripts/create-admin.mjs
 #
 # name: cipse-prod para que nunca colisione con el proyecto de desarrollo
 # (docker compose de la raíz, proyecto "cipse"): un down del stack prod no
@@ -62,6 +73,39 @@
 
 name: cipse-prod
 
+# Definición común de los dos colores del app (blue-green); a nivel superior
+# como campo de extensión: no crea servicio, solo alimenta las anclas.
+x-app-base: &app-base
+  restart: unless-stopped
+  env_file:
+    - ../.env
+  environment:
+    MYSQL_HOST: db
+    MYSQL_PORT: "3306"
+    # PEM de OCI vive en el host y se monta abajo (read-only); dentro del
+    # contenedor se sobrescribe la ruta del env_file. El PEM debe ser
+    # legible por uid 1000: el app corre como `node` (uid 1000, gid 1000);
+    # si el PEM pertenece a ese uid (propietario típico del primer usuario
+    # del servidor), no hace falta nada más; si no, chown/chgrp al host.
+    OCI_PRIVATE_KEY: /run/secrets/oci/key.pem
+  volumes:
+    # PEM de OCI: por defecto /etc/ssl/certs/oci.pem (ruta habitual en el
+    # servidor); OCI_PEM_HOST_PATH permite sobreescribirla sin editar este
+    # archivo. Read-only: el proceso solo lo lee para firmar peticiones.
+    # create_host_path=false: si el PEM no existe en el host, el
+    # contenedor falla al crearse en lugar de montar un directorio vacío.
+    - type: bind
+      source: ${OCI_PEM_HOST_PATH:-/etc/ssl/certs/oci.pem}
+      target: /run/secrets/oci/key.pem
+      read_only: true
+      bind:
+        create_host_path: false
+  depends_on:
+    db:
+      condition: service_healthy
+  networks:
+    - internal
+
 services:
   traefik:
     image: traefik:v3  # serie estable 3.x: cliente docker negociable con daemons recientes
@@ -71,6 +115,10 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=cipse-prod_internal
+      # Enrutamiento del app por provider file (deploy/dynamic/): un solo
+      # router cipse cuyos destinos conmuta deploy.sh reescribiendo
+      # app-routing.yml; Traefik vigila el directorio y recarga en caliente.
+      - --providers.file.directory=/etc/traefik/dynamic
       # Dashboard desactivado; si se desea en :8080 añadir
       # --api.dashboard=true + --entryPoints.traefik.address=:8080 y publicarlo.
       - --api=false
@@ -82,6 +130,9 @@ services:
       # El provider docker necesita leer el socket (sin escritura).
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - traefik_data:/etc/traefik
+      # Configuración dinámica montada como directorio (el provider file
+      # vigila el árbol; reescribir app-routing.yml dispara la recarga).
+      - ./dynamic:/etc/traefik/dynamic:ro
     environment:
       # Daemons recientes (p. ej. Docker 29) exigen API >= 1.44; el cliente
       # docker de Traefik negocia 1.24 por defecto.
@@ -94,49 +145,19 @@ services:
     networks:
       - internal
 
-  app:
-    build:
-      context: ..
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    env_file:
-      - ../.env
-    environment:
-      MYSQL_HOST: db
-      MYSQL_PORT: "3306"
-      # PEM de OCI vive en el host y se monta abajo (read-only); dentro del
-      # contenedor se sobrescribe la ruta del env_file. El PEM debe ser
-      # legible por uid 1000: el app corre como `node` (uid 1000, gid 1000);
-      # si el PEM pertenece a ese uid (propietario típico de la sesión del
-      # servidor), no hace falta nada más; si no, chown/chgrp al host.
-      OCI_PRIVATE_KEY: /run/secrets/oci/key.pem
-    volumes:
-      # PEM de OCI: por defecto /etc/ssl/certs/oci.pem (ruta habitual en el
-      # servidor); OCI_PEM_HOST_PATH permite sobreescribirla sin editar este
-      # archivo. Read-only: el proceso solo lo lee para firmar peticiones.
-      # create_host_path=false: si el PEM no existe en el host, el
-      # contenedor falla al crearse en lugar de montar un directorio vacío.
-      - type: bind
-        source: ${OCI_PEM_HOST_PATH:-/etc/ssl/certs/oci.pem}
-        target: /run/secrets/oci/key.pem
-        read_only: true
-        bind:
-          create_host_path: false
-    depends_on:
-      db:
-        condition: service_healthy
-    networks:
-      - internal
-    labels:
-      - traefik.enable=true
-      # Red desde la que Traefik debe tomar la IP del app. Con el proyecto
-      # "cipse-prod" la red del stack se llama cipse-prod_internal; declararlo
-      # también aquí evita el 504 clásico de IP de red equivocada.
-      - traefik.docker.network=cipse-prod_internal
-      - traefik.http.routers.cipse.rule=PathPrefix(`/`)
-      - traefik.http.routers.cipse.entrypoints=web
-      - traefik.http.routers.cipse.priority=1
-      - traefik.http.services.cipse.loadbalancer.server.port=3000
+  # ---------------------------------------------------------------- app-a
+  # Dos servicios idénticos (colo azul/verde) comparten definición vía
+  # anchor YAML del campo de extensión x-app-base; solo difiere el nombre.
+  # La imagen la fija APP_IMAGE y el router activo el app-routing.yml del
+  # provider file de Traefik.
+  app-a:
+    <<: *app-base
+    image: ${APP_IMAGE:-ghcr.io/duartedc/cipse:latest}
+
+  # ---------------------------------------------------------------- app-b
+  app-b:
+    <<: *app-base
+    image: ${APP_IMAGE:-ghcr.io/duartedc/cipse:latest}
 
   db:
     image: mysql:8.4
