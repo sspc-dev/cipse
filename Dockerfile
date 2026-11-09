@@ -60,6 +60,9 @@ COPY --from=build /app/scripts ./scripts
 COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/pnpm-workspace.yaml ./pnpm-workspace.yaml
 COPY --from=build /app/next.config.ts ./next.config.ts
+# next.config.ts se transpila en runtime y resuelve sus imports relativos en
+# disco; sin este archivo `next start` falla con MODULE_NOT_FOUND.
+COPY --from=build /app/lib/security-headers.ts ./lib/security-headers.ts
 
 # El directorio de caché de imágenes debe existir y ser escribible por el
 # proceso del servidor antes de cambiar al usuario sin privilegios.
