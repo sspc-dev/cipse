@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Providers } from "@/app/providers";
 import { fontClassNames } from "@/lib/fonts";
 import "@/app/globals.css";
@@ -17,11 +18,22 @@ export const metadata: Metadata = {
     "Congreso Internacional Policial contra el Secuestro y la Extorsión, México 2026. Organizado por la SSPC.",
 };
 
-export default function RootLayout({
+/*
+ * El nonce se lee de headers() en este layout, así que todo el árbol se
+ * renderiza dinámicamente y una navegación puede bloquear: se desactiva la
+ * validación de navegación instantánea.
+ */
+export const instant = false;
+
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // El nonce lo genera el proxy por request. Leer headers() hace el render
+  // dinámico (requisito del nonce) y Next aplica el nonce a sus scripts.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html
       lang="es"
@@ -29,7 +41,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-background font-sans text-foreground">
-        <Providers>{children}</Providers>
+        <Providers nonce={nonce}>{children}</Providers>
       </body>
     </html>
   );

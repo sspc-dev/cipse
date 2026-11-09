@@ -23,13 +23,21 @@ function ThemedToaster() {
   );
 }
 
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({
+  children,
+  nonce,
+}: {
+  children: React.ReactNode;
+  /** Nonce CSP generado por el proxy; autoriza el script inline del tema. */
+  nonce?: string;
+}) {
   return (
     <ThemeProvider
       attribute="class"
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
+      nonce={nonce}
     >
       {children}
       <ThemedToaster />

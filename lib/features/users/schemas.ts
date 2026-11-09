@@ -38,6 +38,11 @@ export const resetAdminUserPasswordSchema = z.object({
   password: passwordField,
 });
 
+/** Query string del listado de usuarios: solo paginación. */
+export const usersListQuerySchema = z.object({
+  p: z.coerce.number().int().min(1).default(1),
+});
+
 export type AdminUserListItem = {
   id: number;
   name: string;

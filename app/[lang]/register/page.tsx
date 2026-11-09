@@ -21,6 +21,14 @@ export async function generateMetadata(
 const gridOverlayClass =
   "absolute inset-0 opacity-[0.14] bg-[linear-gradient(to_right,rgba(255,255,255,0.4)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:48px_48px] mask-[radial-gradient(85%_75%_at_50%_40%,black,transparent)]";
 
+/*
+ * Nota sobre alertas ZAP (10024 y 10031): esta página no refleja query
+ * params. El formulario envía por Server Actions (POST) y el catálogo de
+ * países es estático (ISO completo), por lo que `<option value="AF">` existe
+ * siempre y no proviene del parámetro `country`. Los sondeos de ZAP con
+ * `?email=...` en la URL son artefactos del escáner, no comportamiento real.
+ */
+
 export default async function RegisterPage(
   props: PageProps<"/[lang]/register">,
 ) {

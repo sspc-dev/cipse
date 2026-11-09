@@ -24,24 +24,38 @@ function isDuplicateKeyError(error: unknown): boolean {
   return errno === 1062 || code === "ER_DUP_ENTRY";
 }
 
-export async function listAdminUsers(): Promise<AdminUserListItem[]> {
-  const rows = await withConnection(async (connection) => {
-    const [result] = await connection.query<AdminUserRow[]>(
+export async function listAdminUsers(query: {
+  page: number;
+  pageSize: number;
+}): Promise<{ rows: AdminUserListItem[]; total: number }> {
+  const offset = (query.page - 1) * query.pageSize;
+
+  return withConnection(async (connection) => {
+    const [rows] = await connection.query<AdminUserRow[]>(
       `SELECT id, name, email, is_active, created_at
        FROM admin_users
-       ORDER BY created_at ASC, id ASC`,
+       ORDER BY created_at ASC, id ASC
+       LIMIT ? OFFSET ?`,
+      [query.pageSize, offset],
     );
 
-    return result;
-  });
+    const [countRows] = await connection.query<RowDataPacket[]>(
+      "SELECT COUNT(*) AS total FROM admin_users",
+    );
 
-  return rows.map((row) => ({
-    id: Number(row.id),
-    name: row.name,
-    email: row.email,
-    isActive: row.is_active === 1,
-    createdAt: row.created_at,
-  }));
+    const total = Number(countRows[0]?.total ?? 0);
+
+    return {
+      rows: rows.map((row) => ({
+        id: Number(row.id),
+        name: row.name,
+        email: row.email,
+        isActive: row.is_active === 1,
+        createdAt: row.created_at,
+      })),
+      total,
+    };
+  });
 }
 
 export async function insertAdminUser(input: {

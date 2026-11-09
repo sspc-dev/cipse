@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { notFound, redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/features/auth/actions";
 import { findAccreditationById } from "@/lib/features/admin/datasource";
@@ -15,9 +16,13 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function CredentialPrintPage(
+export default async function CredentialPrintPage(
   props: PageProps<"/admin/credential/[id]">,
 ) {
+  // Render dinámico: el shell estático de PPR no lleva nonce CSP y dejaría
+  // los scripts de esta vista (botón de impresión) bloqueados por la política.
+  await connection();
+
   return (
     <Suspense fallback={<CredentialSkeleton />}>
       <CredentialPrintContent params={props.params} />

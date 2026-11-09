@@ -80,7 +80,10 @@ function SectionTitle({
 
 function KpiSkeleton() {
   return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-hidden="true">
+    <div
+      className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      aria-hidden="true"
+    >
       {[0, 1, 2, 3].map((index) => (
         <div
           key={index}
@@ -311,7 +314,7 @@ async function AdminContent({
 
           <div className={loginGridOverlayClass} />
           <div className="ambient-drift absolute -top-24 -left-24 size-96 rounded-full bg-tactical/30 blur-[130px]" />
-          <div className="ambient-drift-slow absolute -right-24 bottom-0 size-[28rem] rounded-full bg-guinda/25 blur-[140px]" />
+          <div className="ambient-drift-slow absolute -right-24 bottom-0 size-112 rounded-full bg-guinda/25 blur-[140px]" />
           <div className="absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-gold/40 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 h-44 bg-linear-to-t from-[#06090e] via-[#06090e]/40 to-transparent" />
         </div>
@@ -323,7 +326,7 @@ async function AdminContent({
             priority
             width={200}
             height={200}
-            className="h-12 w-auto"
+            className="w-28 md:w-58"
           />
           <Image
             src="/imgs/logo_gob_mx.png"
@@ -331,7 +334,7 @@ async function AdminContent({
             priority
             width={150}
             height={150}
-            className="h-10 w-auto"
+            className="w-20 md:w-38"
           />
         </div>
 

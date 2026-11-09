@@ -3,10 +3,12 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/features/auth/actions";
 import { listAdminUsers } from "@/lib/features/users/datasource";
+import { usersListQuerySchema } from "@/lib/features/users/schemas";
 import { CONGRESS_TIME_ZONE } from "@/lib/constants";
 import { UsersIcon } from "@/components/icons";
 import { AdminShell } from "../admin-shell";
 import { AdminHeader } from "../admin-header";
+import { PaginationFooter } from "../pagination";
 import { CreateUserForm } from "./create-user-form";
 import { UserRow } from "./user-row";
 
@@ -17,16 +19,21 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Igual que el listado de acreditaciones. */
+const PAGE_SIZE = 12;
+
 const createdAtFormatter = new Intl.DateTimeFormat("es-MX", {
   dateStyle: "medium",
   timeZone: CONGRESS_TIME_ZONE,
 });
 
-export default function AdminUsersPage() {
+export default function AdminUsersPage(
+  props: PageProps<"/admin/usuarios">,
+) {
   return (
     <AdminShell>
       <Suspense fallback={<UsersSkeleton />}>
-        <UsersContent />
+        <UsersContent searchParams={props.searchParams} />
       </Suspense>
     </AdminShell>
   );
@@ -42,14 +49,34 @@ function UsersSkeleton() {
   );
 }
 
-async function UsersContent() {
+async function UsersContent({
+  searchParams,
+}: {
+  searchParams: PageProps<"/admin/usuarios">["searchParams"];
+}) {
   const admin = await getAdminSession();
 
   if (!admin) {
     redirect("/admin");
   }
 
-  const users = await listAdminUsers();
+  const raw = await searchParams;
+  const { p } = usersListQuerySchema.parse(raw);
+  const { rows, total } = await listAdminUsers({ page: p, pageSize: PAGE_SIZE });
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const page = Math.min(p, totalPages);
+
+  // Página fuera de rango (?p=99): reconsultar con la página válida para no
+  // mostrar el estado vacío habiendo cuentas.
+  const users =
+    rows.length === 0 && p > totalPages
+      ? (await listAdminUsers({ page, pageSize: PAGE_SIZE })).rows
+      : rows;
+
+  function pageHref(target: number): string {
+    return target > 1 ? `/admin/usuarios?p=${target}` : "/admin/usuarios";
+  }
 
   return (
     <>
@@ -75,7 +102,7 @@ async function UsersContent() {
             <UsersIcon className="size-3.5" aria-hidden="true" />
             Cuentas registradas
             <span className="inline-flex items-center rounded-full border border-border/70 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
-              {users.length}
+              {total}
             </span>
           </h2>
 
@@ -96,19 +123,30 @@ async function UsersContent() {
               </p>
             </div>
           ) : (
-            <ul className="flex flex-col gap-2">
-              {users.map((user) => (
-                <UserRow
-                  key={user.id}
-                  createdAtLabel={createdAtFormatter.format(user.createdAt)}
-                  email={user.email}
-                  id={user.id}
-                  isActive={user.isActive}
-                  isCurrentUser={user.id === admin.id}
-                  name={user.name}
-                />
-              ))}
-            </ul>
+            <>
+              <ul className="flex flex-col gap-2">
+                {users.map((user) => (
+                  <UserRow
+                    key={user.id}
+                    createdAtLabel={createdAtFormatter.format(user.createdAt)}
+                    email={user.email}
+                    id={user.id}
+                    isActive={user.isActive}
+                    isCurrentUser={user.id === admin.id}
+                    name={user.name}
+                  />
+                ))}
+              </ul>
+
+              <PaginationFooter
+                navLabel="Paginación de cuentas"
+                noun="cuenta"
+                page={page}
+                pageHref={pageHref}
+                totalPages={totalPages}
+                total={total}
+              />
+            </>
           )}
         </section>
       </div>
