@@ -3,6 +3,14 @@ on:
   push:
     branches:
       - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   ci:
     runs-on: self-hosted
@@ -18,9 +26,10 @@ jobs:
           cache: true
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Checkout code
-        run: pnppm lint
-
+      - name: Lint
+        run: pnpm lint
+      - name: Typecheck
+        run: pnpm exec tsc --noEmit
       - name: Build to production
         run: pnpm build
 
@@ -29,4 +38,6 @@ jobs:
     needs: ci
     steps:
       - name: Build Docker image
-        run: docker compose --env-file .env -f deploy/docker-compose.yml -f deploy/docker-compose.tls.yml up --build
+        run: docker build -t cipse:sha-${GITHUB_SHA::7} .
+      - name: Deploy (blue-green)
+        run: bash deploy/deploy.sh cipse:sha-${GITHUB_SHA::7}
