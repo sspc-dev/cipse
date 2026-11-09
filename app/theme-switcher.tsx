@@ -2,7 +2,6 @@
 
 import { ToggleButton, ToggleButtonGroup } from "@heroui/react";
 import { useTheme } from "next-themes";
-import { usePathname } from "next/navigation";
 import { useSyncExternalStore, type SVGProps } from "react";
 
 /*
@@ -85,21 +84,22 @@ const THEME_KEYS = new Set<string>(["light", "dark"]);
 const groupClass =
   "rounded-full border border-border bg-surface/80 p-1 shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/40";
 
+const inlineGroupClass =
+  "rounded-full border border-border bg-surface/80 p-0.5 shadow-sm backdrop-blur dark:border-white/10 dark:bg-black/40";
+
 const toggleClass =
   "size-8 rounded-full text-foreground/70 transition-colors hover:text-foreground data-[selected=true]:bg-accent-soft data-[selected=true]:text-accent-soft-foreground";
 
 export function ThemeSwitcher({
   labels = defaultLabels,
+  variant = "floating",
 }: {
   labels?: ThemeSwitcherLabels;
+  /** `floating` para el sitio público; `inline` para cabeceras con acciones. */
+  variant?: "floating" | "inline";
 }) {
   const mounted = useMounted();
-  const pathname = usePathname();
   const { setTheme, theme } = useTheme();
-
-  // La vista de impresión de credenciales debe quedar limpia en pantalla
-  // y en papel; el selector de tema no se renderiza en esa ruta.
-  if (pathname.startsWith("/admin/credential/")) return null;
 
   if (!mounted) return null;
 
@@ -107,33 +107,35 @@ export function ThemeSwitcher({
     ? (theme as ThemeOption)
     : "system";
 
-  return (
-    <div className="fixed right-4 top-4 z-50">
-      <ToggleButtonGroup
-        aria-label={labels.groupLabel}
-        className={groupClass}
-        disallowEmptySelection
-        selectionMode="single"
-        selectedKeys={new Set([activeTheme])}
-        onSelectionChange={(keys) => {
-          const next = [...keys][0];
-          if (typeof next === "string" && THEME_KEYS.has(next)) {
-            setTheme(next);
-          }
-        }}
-      >
-        {themeOptions.map(({ icon: Icon, id }) => (
-          <ToggleButton
-            key={id}
-            aria-label={labels[id]}
-            className={toggleClass}
-            id={id}
-            isIconOnly
-          >
-            <Icon className="size-4" />
-          </ToggleButton>
-        ))}
-      </ToggleButtonGroup>
-    </div>
+  const selector = (
+    <ToggleButtonGroup
+      aria-label={labels.groupLabel}
+      className={variant === "inline" ? inlineGroupClass : groupClass}
+      disallowEmptySelection
+      selectionMode="single"
+      selectedKeys={new Set([activeTheme])}
+      onSelectionChange={(keys) => {
+        const next = [...keys][0];
+        if (typeof next === "string" && THEME_KEYS.has(next)) {
+          setTheme(next);
+        }
+      }}
+    >
+      {themeOptions.map(({ icon: Icon, id }) => (
+        <ToggleButton
+          key={id}
+          aria-label={labels[id]}
+          className={toggleClass}
+          id={id}
+          isIconOnly
+        >
+          <Icon className="size-4" />
+        </ToggleButton>
+      ))}
+    </ToggleButtonGroup>
   );
+
+  if (variant === "inline") return selector;
+
+  return <div className="fixed right-4 top-4 z-50">{selector}</div>;
 }

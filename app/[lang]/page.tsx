@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Idioma sin ruta: los enrutamientos del proxy llevan aquí. */
+/** Respaldo: el proxy redirige /es y /en directamente al registro. */
 export default async function LanguageIndexPage(
   props: PageProps<"/[lang]">,
 ) {

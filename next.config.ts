@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
+import { SECURITY_HEADERS } from "./lib/security-headers";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Evita revelar el framework en cada respuesta (alerta ZAP X-Powered-By).
+  poweredByHeader: false,
   cacheComponents: true,
   partialPrefetching: true,
   // El runtime de producción usa `next start` (servidor completo) para que el
@@ -13,6 +15,16 @@ const nextConfig: NextConfig = {
         as: "*.css",
       },
     },
+  },
+  // Cubre páginas y también los assets de `_next/static`, donde el escaneo
+  // detectó ausencia de HSTS y de X-Content-Type-Options.
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: SECURITY_HEADERS.map(({ key, value }) => ({ key, value })),
+      },
+    ];
   },
 };
 

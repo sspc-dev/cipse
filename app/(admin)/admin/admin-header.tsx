@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ThemeSwitcher } from "@/app/theme-switcher";
 import { AdminLogoutButton } from "./admin-logout-button";
 import {
   IdCardIcon,
@@ -86,6 +87,7 @@ export function AdminHeader({
             <span className="hidden text-[11px] text-muted md:inline">
               {admin.name}
             </span>
+            <ThemeSwitcher variant="inline" />
             <AdminLogoutButton />
           </div>
         </div>

@@ -1,64 +1,17 @@
 "use client";
 
 import { Button } from "@heroui/react";
-import { useState, useSyncExternalStore } from "react";
+import { useState } from "react";
 import type { Dictionary, Locale } from "@/lib/i18n";
 import { RegisterForm } from "./register-form";
 import { QrCredentialCard, type CredentialData } from "./register-success";
 
-const STORAGE_KEY = "cipse:credential";
-
 /*
- * next-themes pattern: el estado persistido en localStorage solo existe en el
- * cliente, así que el gate resuelve tras hidratación con useSyncExternalStore
- * en lugar de setState en un efecto.
+ * La credencial vive únicamente en memoria: no se persiste en localStorage
+ * para no exponer nombre, correo y código de acceso en el navegador (alertas
+ * ZAP). Quien necesite recuperar su QR puede usar /checkin con su código de
+ * acceso.
  */
-const emptySubscribe = () => () => {};
-const useMounted = () =>
-  useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-
-function isStoredCredential(value: unknown): value is CredentialData {
-  if (typeof value !== "object" || value === null) return false;
-  const candidate = value as Record<string, unknown>;
-
-  return (
-    typeof candidate["id"] === "number" &&
-    Number.isInteger(candidate["id"]) &&
-    typeof candidate["name"] === "string" &&
-    typeof candidate["lastname"] === "string" &&
-    typeof candidate["accessCode"] === "string" &&
-    candidate["accessCode"].length >= 16
-  );
-}
-
-function readStoredCredential(): CredentialData | null {
-  if (typeof window === "undefined") return null;
-
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-
-    const parsed = JSON.parse(raw);
-    return isStoredCredential(parsed) ? parsed : null;
-  } catch (error) {
-    window.localStorage.removeItem(STORAGE_KEY);
-    if (error instanceof SyntaxError) return null;
-    throw error;
-  }
-}
-
-function writeStoredCredential(credential: CredentialData): void {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(credential));
-  } catch (error) {
-    console.warn("[credential-gate] No se pudo guardar la credencial:", error);
-  }
-}
-
 export function CredentialGate({
   dictionary,
   locale,
@@ -66,15 +19,7 @@ export function CredentialGate({
   dictionary: Dictionary;
   locale: Locale;
 }) {
-  const mounted = useMounted();
-  const [credentialOverride, setCredentialOverride] =
-    useState<CredentialData | null>(null);
-
-  if (!mounted) {
-    return null;
-  }
-
-  const credential = readStoredCredential() ?? credentialOverride;
+  const [credential, setCredential] = useState<CredentialData | null>(null);
 
   if (credential) {
     return (
@@ -87,10 +32,7 @@ export function CredentialGate({
         <Button
           aria-label={dictionary.register.success.registerAnotherAria}
           className="h-11 rounded-full text-sm font-semibold"
-          onPress={() => {
-            window.localStorage.removeItem(STORAGE_KEY);
-            setCredentialOverride(null);
-          }}
+          onPress={() => setCredential(null)}
           variant="ghost"
         >
           {dictionary.register.success.registerAnother}
@@ -100,13 +42,6 @@ export function CredentialGate({
   }
 
   return (
-    <RegisterForm
-      dictionary={dictionary}
-      locale={locale}
-      onSuccess={(fresh) => {
-        writeStoredCredential(fresh);
-        setCredentialOverride(fresh);
-      }}
-    />
+    <RegisterForm dictionary={dictionary} locale={locale} onSuccess={setCredential} />
   );
 }

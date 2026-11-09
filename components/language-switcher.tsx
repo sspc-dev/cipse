@@ -3,11 +3,7 @@
 import { Button } from "@heroui/react";
 import { usePathname, useRouter } from "next/navigation";
 import { GlobeIcon } from "@/components/icons";
-import {
-  LANG_COOKIE,
-  LANG_COOKIE_MAX_AGE,
-  type Locale,
-} from "@/lib/i18n/config";
+import { type Locale } from "@/lib/i18n/config";
 
 export function LanguageSwitcher({
   locale,
@@ -36,7 +32,8 @@ export function LanguageSwitcher({
     }
 
     const nextPath = segments.join("/") || `/${target}`;
-    document.cookie = `${LANG_COOKIE}=${target}; path=/; max-age=${LANG_COOKIE_MAX_AGE}; samesite=lax`;
+    // La cookie la fija el proxy en la siguiente petición, con HttpOnly y
+    // Secure; escribirla aquí la duplicaría sin esas protecciones.
     document.documentElement.lang = target;
     router.push(nextPath);
   }

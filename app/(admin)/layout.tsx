@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { ThemeSwitcher } from "@/app/theme-switcher";
 
 export const metadata: Metadata = {
   title: "Panel de acreditación — CIPSE XV",
@@ -14,12 +12,5 @@ export default function AdminRootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {children}
-      <Suspense fallback={null}>
-        <ThemeSwitcher />
-      </Suspense>
-    </>
-  );
+  return <>{children}</>;
 }

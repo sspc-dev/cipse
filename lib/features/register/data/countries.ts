@@ -1,32 +1,13 @@
 /**
- * Catálogo de países para el registro: códigos ISO 3166-1 alpha-2 con nombre
- * en español (Intl.DisplayNames) y bandera como emoji regional. Sin dataset
- * de nombres duplicado: el navegador resuelve la traducción.
+ * Catálogo de países para el registro: códigos ISO 3166-1 alpha-2, nombre en
+ * el idioma solicitado y bandera como emoji regional.
+ *
+ * Los nombres provienen de un dataset estático (country-names.generated.ts):
+ * `Intl.DisplayNames` y `localeCompare` resuelven distinto según el ICU del
+ * entorno (Node vs navegador) y causaban mismatch de hidratación.
  */
 
-const ISO_ALPHA2_CODES = [
-  "AD", "AE", "AF", "AG", "AI", "AL", "AM", "AO", "AQ", "AR", "AS", "AT",
-  "AU", "AW", "AX", "AZ", "BA", "BB", "BD", "BE", "BF", "BG", "BH", "BI",
-  "BJ", "BL", "BM", "BN", "BO", "BQ", "BR", "BS", "BT", "BV", "BW", "BY",
-  "BZ", "CA", "CC", "CD", "CF", "CG", "CH", "CI", "CK", "CL", "CM", "CN",
-  "CO", "CR", "CU", "CV", "CW", "CX", "CY", "CZ", "DE", "DJ", "DK", "DM",
-  "DO", "DZ", "EC", "EE", "EG", "EH", "ER", "ES", "ET", "FI", "FJ", "FK",
-  "FM", "FO", "FR", "GA", "GB", "GD", "GE", "GF", "GG", "GH", "GI", "GL",
-  "GM", "GN", "GP", "GQ", "GR", "GS", "GT", "GU", "GW", "GY", "HK", "HM",
-  "HN", "HR", "HT", "HU", "ID", "IE", "IL", "IM", "IN", "IO", "IQ", "IR",
-  "IS", "IT", "JE", "JM", "JO", "JP", "KE", "KG", "KH", "KI", "KM", "KN",
-  "KP", "KR", "KW", "KY", "KZ", "LA", "LB", "LC", "LI", "LK", "LR", "LS",
-  "LT", "LU", "LV", "LY", "MA", "MC", "MD", "ME", "MF", "MG", "MH", "MK",
-  "ML", "MM", "MN", "MO", "MP", "MQ", "MR", "MS", "MT", "MU", "MV", "MW",
-  "MX", "MY", "MZ", "NA", "NC", "NE", "NF", "NG", "NI", "NL", "NO", "NP",
-  "NR", "NU", "NZ", "OM", "PA", "PE", "PF", "PG", "PH", "PK", "PL", "PM",
-  "PN", "PR", "PS", "PT", "PW", "PY", "QA", "RE", "RO", "RS", "RU", "RW",
-  "SA", "SB", "SC", "SD", "SE", "SG", "SH", "SI", "SJ", "SK", "SL", "SM",
-  "SN", "SO", "SR", "SS", "ST", "SV", "SX", "SY", "SZ", "TC", "TD", "TF",
-  "TG", "TH", "TJ", "TK", "TL", "TM", "TN", "TO", "TR", "TT", "TV", "TW",
-  "TZ", "UA", "UG", "UM", "US", "UY", "UZ", "VA", "VC", "VE", "VG", "VI",
-  "VN", "VU", "WF", "WS", "YE", "YT", "ZA", "ZM", "ZW",
-] as const;
+import { COUNTRY_NAMES } from "./country-names.generated";
 
 export type CountryOption = {
   code: string;
@@ -36,7 +17,9 @@ export type CountryOption = {
   label: string;
 };
 
-function intlTag(locale: string): "en" | "es" {
+type CountryLanguage = keyof typeof COUNTRY_NAMES;
+
+function intlTag(locale: string): CountryLanguage {
   return locale === "en" ? "en" : "es";
 }
 
@@ -63,15 +46,12 @@ export function countryFlag(value: string): string | null {
   return null;
 }
 
-function countryName(code: string, tag: "en" | "es"): string {
-  try {
-    return new Intl.DisplayNames([tag], { type: "region" }).of(code) ?? code;
-  } catch {
-    return code;
-  }
+function countryName(code: string, tag: CountryLanguage): string {
+  const entry = COUNTRY_NAMES[tag].find(([entryCode]) => entryCode === code);
+  return entry ? entry[1] : code;
 }
 
-const optionsCache = new Map<string, CountryOption[]>();
+const optionsCache = new Map<CountryLanguage, CountryOption[]>();
 
 /** Catálogo de países resuelto en el idioma solicitado. */
 export function countryOptions(locale: string): CountryOption[] {
@@ -79,12 +59,13 @@ export function countryOptions(locale: string): CountryOption[] {
   const cached = optionsCache.get(tag);
   if (cached) return cached;
 
-  const options = ISO_ALPHA2_CODES.map((code) => {
-    const name = countryName(code, tag);
-    const flag = flagFromCode(code);
-
-    return { code, name, flag, label: `${flag} ${name}` };
-  }).sort((a, b) => a.name.localeCompare(b.name, tag));
+  // El dataset ya viene ordenado para el idioma de cada bloque.
+  const options = COUNTRY_NAMES[tag].map(([code, name]) => ({
+    code,
+    name,
+    flag: flagFromCode(code),
+    label: `${flagFromCode(code)} ${name}`,
+  }));
 
   optionsCache.set(tag, options);
   return options;
