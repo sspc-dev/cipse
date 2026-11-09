@@ -194,9 +194,10 @@ fi
 echo "== enrutamiento del app (provider file) =="
 routing_file="$ROOT_DIR/deploy/dynamic/app-routing.yml"
 if [[ ! -f "$routing_file" ]]; then
-  # Primer despliegue legítimo: el pipeline solo SEMBRA app-routing.yml si
-  # falta (rsync nunca pisa el estado del servidor) y deploy.sh regenera
-  # el enrutamiento en su paso 0, después de este preflight. No bloquear.
+  # Primer despliegue legítimo: el archivo es producto de deploy.sh
+  # (paso 0: write_routing SIEMPRE corre antes de tocar tráfico) y está
+  # gitignored, así que ni el repo ni el reset --hard del sync de código
+  # lo traen. No bloquear.
   warn "no existe $routing_file (deploy.sh lo genera en el paso 0; en un stack en producción indica que el enrutamiento Traefik se perdió)"
 elif ! grep -q 'http://app-[ab]:3000' "$routing_file"; then
   err "$routing_file no apunta a app-a ni app-b; regenere con deploy.sh o restaure el repo"

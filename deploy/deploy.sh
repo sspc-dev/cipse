@@ -15,25 +15,27 @@
 # si existe, no se toca el registry.
 #
 # Secuencia (el colo ACTIVO sigue sirviendo tráfico hasta el final):
-#   0. Alinear la base (traefik/db) al compose vigente: compose solo
-#      recrea contenedores cuya config cambió; sin esto, un traefik viejo
-#      (de una versión anterior del compose) sigue sin cargar el router
-#      del provider file y la verificación da 404 eterno.
-#   1. Restaurar el enrutamiento declarado por el estado (Traefik hot reload)
-#      — protege contra rsync que traiga un app-routing.yml desfasado.
-#   2. APP_IMAGE=<nuevo> pull del color INACTIVO (a/b) y recreate de ese
-#      contenedor; el activo no se toca en todo el release.
-#   3. Esperar el healthcheck del contenedor nuevo (Dockerfile:
-#      wget /es/register).
-#   4. Migraciones idempotentes (deploy/db-migrate.sh): el esquema se
-#      sincroniza mientras la versión anterior sigue en servicio.
-#   5. Conmutación: reescribir deploy/dynamic/app-routing.yml hacia el color
-#      nuevo — Traefik (provider file) recarga en caliente y el tráfico
-#      cambia sin downtime.
-#   6. Verificación visible: HTTPS (o HTTP con redirect) local del host,
-#      a través de Traefik, contra /es/register.
-#   7. Parar el color anterior (el contenedor se CONSERVA parado para el
-#      rollback) y registrar el estado (deploy/state.env).
+#   0/6: preflight + alinear la base (traefik/db) al compose vigente
+#        (up --no-deps; compose solo recrea contenedores cuya config
+#        cambió: sin esto, un traefik viejo —de una versión anterior del
+#        compose— no carga el router del provider file y la verificación
+#        da 404 eterno) + reescribir el enrutamiento al color vivo
+#        (o app-a en el primer despliegue). El routing es producto de la
+#        ejecución (gitignored en el repo): el reset --hard del sync de
+#        código del pipeline nunca puede pisarlo.
+#   1/6: APP_IMAGE=<nuevo> pull del color INACTIVO (a/b) y recreate de ese
+#        contenedor; el activo no se toca en todo el release.
+#   2/6: esperar el healthcheck del contenedor nuevo (Dockerfile:
+#        wget /es/register).
+#   3/6: migraciones idempotentes (deploy/db-migrate.sh): el esquema se
+#        sincroniza mientras la versión anterior sigue en servicio.
+#   4/6: conmutación: reescribir deploy/dynamic/app-routing.yml hacia el
+#        color nuevo — Traefik (provider file) recarga en caliente y el
+#        tráfico cambia sin downtime.
+#   5/6: verificación visible: HTTPS (o HTTP con redirect) local del host,
+#        a través de Traefik, contra /es/register.
+#   6/6: parar el color anterior (el contenedor se CONSERVA parado para el
+#        rollback) y registrar el estado (deploy/state.env).
 #
 # En cualquier fallo posterior a la conmutación, revertir: volver el
 # enrutamiento al color anterior, asegurar que sigue sirviendo y salir con
@@ -214,14 +216,19 @@ cmd_deploy() { # imagen
     log "primer despliegue detectado: colo destino app-a"
   fi
 
-  # 0. Base del stack al compose vigente (recrea traefik/db SOLO si su
-  #    config cambió; no-op en releases estables) + restore de enrutamiento.
-  echo "== 0/6 base del stack (traefik/db) alineada al compose vigente =="
+  # 0/6a. Preflight: valida host y corrige lo seguro (rutas de certs/PEM,
+  #       overrides obsoletos, router duplicado, directorios fantasma).
+  bash deploy/preflight.sh --fix
+
+  # 0/6b. Alinear la base al compose vigente y reescribir el routing al
+  #       color vivo. Compose es no-op cuando la config coincide; recrea
+  #       solo si cambió (p. ej. tras actualizar el compose en el repo) y
+  #       arranca todo de cero en un host nuevo. Sin esto, un traefik con
+  #       config o montajes anteriores NO cargaría el router del provider
+  #       file (app-routing.yml) y la verificación daría 404.
   ensure_infra
-  if [[ -n "$active" ]]; then
-    write_routing "$active"
-    log "enrutamiento restaurado a app-$active"
-  fi
+  log "enrutamiento apuntando a app-${active:-a}"
+  write_routing "${active:-a}"
 
   # 1. Imagen del colo activo (para revertir sin pisar :latest).
   old_image=""
@@ -318,6 +325,10 @@ EOF
 }
 
 main() {
+  # Preflight integrado: deploy.sh es la única puerta de entrada del
+  # pipeline (y del operador) — dentro corre la validación del host.
+  bash deploy/preflight.sh --fix
+
   if [[ "${1:-}" == "--rollback" ]]; then
     cmd_rollback
   elif [[ $# -eq 0 ]]; then

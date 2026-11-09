@@ -41,6 +41,12 @@ yarn-error.log*
 next-env.d.ts
 
 
+# deploy self-hosted: estado del servidor, nunca del repo
+# (deploy.sh genera app-routing.yml en el paso 0 y state.env en cada release;
+# git reset --hard del pipeline NO debe tocarlos)
+deploy/dynamic/app-routing.yml
+deploy/state.env
+
 *.pem
 
 opencode.json
