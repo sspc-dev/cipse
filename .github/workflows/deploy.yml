@@ -14,16 +14,18 @@ concurrency:
 jobs:
   ci:
     runs-on: self-hosted
-    strategy:
-      matrix:
-        node: [20.x]
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - uses: pnpm/setup@v3
+      - uses: pnpm/setup-node@v4
         with:
-          runtime: node@{{ matrix.node }}
+          node-version: 22
+          cache: "pnpm"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
