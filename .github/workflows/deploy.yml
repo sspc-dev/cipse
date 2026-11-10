@@ -32,8 +32,10 @@ jobs:
       - name: Create environment file
         env:
           PRODUCTION_ENV: ${{ secrets.PRODUCTION_ENV }}
-        run: touch .env \
-          && echo %PRODUCTION_ENV% > .env
+        run: |
+          set -euo pipefail
+          umask 077
+          printf '%s' "$PRODUCTION_ENV" > .env
       - name: Build Docker image
         run: docker build -t cipse:sha-${GITHUB_SHA::7} .
       - name: Deploy (blue-green)
