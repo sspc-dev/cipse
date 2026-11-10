@@ -38,7 +38,7 @@ async function RegisterQrPrintContent() {
   const admin = await getAdminSession();
 
   if (!admin) {
-    redirect("/admin");
+    redirect("/dashboard");
   }
 
   const headerList = await headers();
@@ -63,7 +63,7 @@ async function RegisterQrPrintContent() {
         <Link
           aria-label="Volver al panel de acreditación"
           className="rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-accent"
-          href="/admin"
+          href="/dashboard"
         >
           ← Panel
         </Link>

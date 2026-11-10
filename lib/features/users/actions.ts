@@ -60,7 +60,7 @@ export async function createAdminUser(input: unknown): Promise<UserActionResult>
     };
   }
 
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/dashboard/usuarios");
   return { ok: true, message: "Usuario creado correctamente." };
 }
 
@@ -99,7 +99,7 @@ export async function updateAdminUserAction(
     };
   }
 
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/dashboard/usuarios");
   return { ok: true, message: "Datos del usuario actualizados." };
 }
 
@@ -131,7 +131,7 @@ export async function setAdminUserActiveAction(
     };
   }
 
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/dashboard/usuarios");
   return {
     ok: true,
     message: parsed.data.active
@@ -174,6 +174,6 @@ export async function resetAdminUserPasswordAction(
     };
   }
 
-  revalidatePath("/admin/usuarios");
+  revalidatePath("/dashboard/usuarios");
   return { ok: true, message: "Contraseña actualizada correctamente." };
 }

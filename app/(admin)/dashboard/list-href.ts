@@ -15,5 +15,5 @@ export function listHref(filters: ListHrefFilters = {}): string {
   if (filters.period) params.set("period", String(filters.period));
   if (filters.page && filters.page > 1) params.set("p", String(filters.page));
   const queryString = params.toString();
-  return queryString ? `/admin?${queryString}` : "/admin";
+  return queryString ? `/dashboard?${queryString}` : "/dashboard";
 }

@@ -28,7 +28,7 @@ const createdAtFormatter = new Intl.DateTimeFormat("es-MX", {
 });
 
 export default function AdminUsersPage(
-  props: PageProps<"/admin/usuarios">,
+  props: PageProps<"/dashboard/usuarios">,
 ) {
   return (
     <AdminShell>
@@ -52,12 +52,12 @@ function UsersSkeleton() {
 async function UsersContent({
   searchParams,
 }: {
-  searchParams: PageProps<"/admin/usuarios">["searchParams"];
+  searchParams: PageProps<"/dashboard/usuarios">["searchParams"];
 }) {
   const admin = await getAdminSession();
 
   if (!admin) {
-    redirect("/admin");
+    redirect("/dashboard");
   }
 
   const raw = await searchParams;
@@ -75,7 +75,7 @@ async function UsersContent({
       : rows;
 
   function pageHref(target: number): string {
-    return target > 1 ? `/admin/usuarios?p=${target}` : "/admin/usuarios";
+    return target > 1 ? `/dashboard/usuarios?p=${target}` : "/dashboard/usuarios";
   }
 
   return (

@@ -22,19 +22,19 @@ const NAV_ITEMS: {
   {
     section: "acreditaciones",
     label: "Acreditaciones",
-    href: "/admin",
+    href: "/dashboard",
     icon: IdCardIcon,
   },
   {
     section: "usuarios",
     label: "Usuarios",
-    href: "/admin/usuarios",
+    href: "/dashboard/usuarios",
     icon: UsersIcon,
   },
   {
     section: "multimedia",
     label: "Multimedia",
-    href: "/admin/multimedia",
+    href: "/dashboard/multimedia",
     icon: ImageIcon,
   },
 ];
@@ -72,7 +72,7 @@ export function AdminHeader({
             <Link
               aria-label="Abrir el QR imprimible para el autorregistro"
               className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"
-              href="/admin/register-qr"
+              href="/dashboard/register-qr"
             >
               <QrCodeIcon aria-hidden="true" className="size-3.5" />
               QR de registro

@@ -108,7 +108,7 @@ async function MediaContent() {
   const admin = await getAdminSession();
 
   if (!admin) {
-    redirect("/admin");
+    redirect("/dashboard");
   }
 
   const media = await listEventMediaWithKeys();

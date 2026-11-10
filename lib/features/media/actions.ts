@@ -71,7 +71,7 @@ export async function deleteEventMediaAction(
     };
   }
 
-  revalidatePath("/admin/multimedia");
+  revalidatePath("/dashboard/multimedia");
   revalidatePath("/multimedia");
   return { ok: true, message: "Archivo eliminado." };
 }
@@ -110,7 +110,7 @@ export async function updateEventMediaAction(
     };
   }
 
-  revalidatePath("/admin/multimedia");
+  revalidatePath("/dashboard/multimedia");
   revalidatePath("/multimedia");
   return { ok: true, message: "Archivo actualizado." };
 }

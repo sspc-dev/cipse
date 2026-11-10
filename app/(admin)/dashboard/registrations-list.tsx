@@ -184,7 +184,7 @@ function RegistrationCard({ registration, todayIso }: RegistrationCardProps) {
           <a
             aria-label={`Imprimir credencial de ${folio}`}
             className={credentialActionClass}
-            href={`/admin/credential/${registration.id}`}
+            href={`/dashboard/credential/${registration.id}`}
             rel="noreferrer"
             target="_blank"
           >
@@ -285,7 +285,7 @@ export async function RegistrationsList({
             <Link
               aria-label="Quitar todos los filtros del listado"
               className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
-              href="/admin"
+              href="/dashboard"
             >
               <XIcon className="size-3" aria-hidden="true" />
               Limpiar filtros

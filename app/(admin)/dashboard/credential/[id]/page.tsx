@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function CredentialPrintPage(
-  props: PageProps<"/admin/credential/[id]">,
+  props: PageProps<"/dashboard/credential/[id]">,
 ) {
   // Render dinámico: el shell estático de PPR no lleva nonce CSP y dejaría
   // los scripts de esta vista (botón de impresión) bloqueados por la política.
@@ -44,12 +44,12 @@ function CredentialSkeleton() {
 async function CredentialPrintContent({
   params,
 }: {
-  params: PageProps<"/admin/credential/[id]">["params"];
+  params: PageProps<"/dashboard/credential/[id]">["params"];
 }) {
   const admin = await getAdminSession();
 
   if (!admin) {
-    redirect("/admin");
+    redirect("/dashboard");
   }
 
   const { id } = await params;
@@ -73,7 +73,7 @@ async function CredentialPrintContent({
         <Link
           aria-label="Volver al panel de acreditación"
           className="rounded-full border border-border px-3.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:border-accent"
-          href="/admin"
+          href="/dashboard"
         >
           ← Panel
         </Link>

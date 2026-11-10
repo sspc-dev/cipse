@@ -250,7 +250,7 @@ async function KpiSection({
   );
 }
 
-export default function AdminPage(props: PageProps<"/admin">) {
+export default function AdminPage(props: PageProps<"/dashboard">) {
   return (
     <AdminShell>
       <Suspense fallback={<AdminSkeleton />}>
@@ -276,7 +276,7 @@ function AdminSkeleton() {
 async function AdminContent({
   searchParams,
 }: {
-  searchParams: PageProps<"/admin">["searchParams"];
+  searchParams: PageProps<"/dashboard">["searchParams"];
 }) {
   const admin = await getAdminSession();
   const raw = await searchParams;
@@ -480,7 +480,7 @@ async function AdminContent({
           {/* Barra de herramientas: búsqueda + filtro de asistencia + chips */}
           <div className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-foreground/[0.02] p-3 dark:border-white/10 sm:flex-row sm:items-center sm:gap-4">
             <form
-              action="/admin"
+              action="/dashboard"
               className="flex min-w-0 flex-1 items-center gap-2"
               method="get"
             >
@@ -554,7 +554,7 @@ async function AdminContent({
                 <Link
                   aria-label="Quitar todos los filtros: búsqueda, país y estado"
                   className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-danger/60 hover:text-danger"
-                  href={`/admin?period=${period}`}
+                  href={`/dashboard?period=${period}`}
                 >
                   <XIcon className="size-3" aria-hidden="true" />
                   Limpiar
