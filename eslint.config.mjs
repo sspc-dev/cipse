@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Scripts y librerías de terceros de los agentes opencode (incluido un
+    // bundle minificado UMD): no son código fuente del proyecto.
+    ".agents/**",
+    ".opencode/**",
   ]),
 ]);
 

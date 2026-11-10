@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { applySecurityHeaders, buildSecurityHeaders } from "@/lib/security-headers";
 import {
-  DEFAULT_LOCALE,
   LANG_COOKIE,
   LANG_COOKIE_MAX_AGE,
   hasLocale,

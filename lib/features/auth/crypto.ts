@@ -19,7 +19,7 @@ const SESSION_TOKEN_BYTES = 32;
  */
 export function hashPassword(password: string): string {
   const salt = randomBytes(16);
-  const hash = scryptSync(password, salt, SCRYPT_KEYLEN);
+  const hash = scryptSync(password, salt, SCRYPT_KEYLEN, { N: SCRYPT_COST });
 
   return `scrypt$${salt.toString("base64")}$${hash.toString("base64")}`;
 }
@@ -36,7 +36,7 @@ export function verifyPassword(
     const expected = Buffer.from(hashB64, "base64");
     if (expected.length !== SCRYPT_KEYLEN) return false;
 
-    const actual = scryptSync(password, salt, SCRYPT_KEYLEN);
+    const actual = scryptSync(password, salt, SCRYPT_KEYLEN, { N: SCRYPT_COST });
 
     return timingSafeEqual(actual, expected);
   } catch {
