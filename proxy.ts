@@ -28,7 +28,7 @@ function isLocaleRoutedPath(pathname: string): boolean {
   // Los archivos con extensión (favicon.ico, robots.txt, imgs/*) quedan fuera
   // por el punto del nombre.
   return (
-    !["api", "admin", "_next", "imgs"].includes(firstSegment) &&
+    !["api", "dashboard", "_next", "imgs"].includes(firstSegment) &&
     !pathname.startsWith("/multimedia/file") &&
     !pathname.includes(".")
   );
