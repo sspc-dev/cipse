@@ -17,7 +17,7 @@ import {
   type AccreditationListRow,
   type AttendanceFilterKind,
 } from "@/lib/features/admin/datasource";
-import { isoDayInCongressTime } from "@/lib/features/admin/dates";
+import { congressTodayIso } from "@/lib/congress-dates";
 import { PaginationFooter } from "./pagination";
 import { listHref } from "./list-href";
 
@@ -247,7 +247,7 @@ export async function RegistrationsList({
 
   const totalPages = Math.max(1, Math.ceil(total / query.pageSize));
   const page = Math.min(query.page, totalPages);
-  const todayIso = isoDayInCongressTime(new Date());
+  const todayIso = congressTodayIso();
 
   function pageHref(target: number): string {
     return listHref({

@@ -19,7 +19,7 @@ import {
   countryDisplayName,
   countryFlag,
 } from "@/lib/features/register/data/countries";
-import { isoDayInCongressTime } from "@/lib/features/admin/dates";
+import { congressTodayIso } from "@/lib/congress-dates";
 import {
   CheckIcon,
   FingerprintIcon,
@@ -584,7 +584,7 @@ async function TrendPanelSection({ period }: { period: number }) {
 
 async function AttendancePanelSection({ period }: { period: number }) {
   const days = await getAttendanceByDay(period);
-  const todayIso = isoDayInCongressTime(new Date());
+  const todayIso = congressTodayIso();
 
   return <AttendanceChartPanel days={days} todayIso={todayIso} />;
 }

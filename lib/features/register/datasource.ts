@@ -1,5 +1,6 @@
 import type { ResultSetHeader } from "mysql2/promise";
 import { withConnection } from "@/lib/db/mysql-client";
+import { congressTodayIso } from "@/lib/congress-dates";
 import { generateAccessCode } from "./access-code";
 import type { RegisterAccreditationDto } from "./dto";
 
@@ -50,11 +51,13 @@ export async function insertAccreditation(
       }
 
       // El registro web otorga la asistencia del día en el mismo alta.
+      // Día de negocio (CDMX) e instante UTC calculados en JS: el mismo
+      // criterio que el escáner del acreditador, sin CURDATE()/CURRENT_TIMESTAMP.
       await connection.query(
         `INSERT INTO attendance_records
            (accreditation_id, attended_on, attended_at, checked_in_by)
-         VALUES (?, CURDATE(), CURRENT_TIMESTAMP, ?)`,
-        [id, SELF_CHECKIN_LABEL],
+         VALUES (?, ?, ?, ?)`,
+        [id, congressTodayIso(), new Date(), SELF_CHECKIN_LABEL],
       );
 
       return { id, accessCode };

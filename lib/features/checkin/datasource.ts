@@ -4,6 +4,7 @@ import type {
   RowDataPacket,
 } from "mysql2/promise";
 import { withConnection } from "@/lib/db/mysql-client";
+import { congressTodayIso } from "@/lib/congress-dates";
 
 export type AccreditationRecord = {
   id: number;
@@ -77,6 +78,10 @@ export async function registerAttendanceByDay(
   accessCode: string,
   checkedInBy: string,
 ): Promise<AttendanceDayResult | null> {
+  // Día de negocio (CDMX) e instante calculados aquí, una sola vez: la BD
+  // recibe parámetros explícitos y no depende del huso de la sesión MySQL.
+  const todayIso = congressTodayIso();
+
   return await withConnection(async (connection) => {
     const [baseRows] = await connection.query<AccreditationRow[]>(
       `SELECT id, name, lastname, country, email,
@@ -91,8 +96,8 @@ export async function registerAttendanceByDay(
     const [todayRows] = await connection.query<AttendanceRow[]>(
       `SELECT attended_at
        FROM attendance_records
-       WHERE accreditation_id = ? AND attended_on = CURDATE()`,
-      [baseRow.id],
+       WHERE accreditation_id = ? AND attended_on = ?`,
+      [baseRow.id, todayIso],
     );
     const today = todayRows[0];
 
@@ -107,16 +112,16 @@ export async function registerAttendanceByDay(
 
     const [insertResult] = await connection.query<ResultSetHeader>(
       `INSERT INTO attendance_records (accreditation_id, attended_on, attended_at, checked_in_by)
-       VALUES (?, CURDATE(), CURRENT_TIMESTAMP, ?)`,
-      [baseRow.id, checkedInBy],
+       VALUES (?, ?, ?, ?)`,
+      [baseRow.id, todayIso, new Date(), checkedInBy],
     );
 
     // Si otra lectura concurrente insertó primero, seguimos su hora real.
     const [freshRows] = await connection.query<AttendanceRow[]>(
       `SELECT attended_at
        FROM attendance_records
-       WHERE accreditation_id = ? AND attended_on = CURDATE()`,
-      [baseRow.id],
+       WHERE accreditation_id = ? AND attended_on = ?`,
+      [baseRow.id, todayIso],
     );
 
     return {
@@ -155,12 +160,14 @@ export async function attendanceDaysFor(
 export async function findAttendanceToday(
   accreditationId: number,
 ): Promise<Date | null> {
+  const todayIso = congressTodayIso();
+
   return await withConnection(async (connection) => {
     const [rows] = await connection.query<AttendanceRow[]>(
       `SELECT attended_at
        FROM attendance_records
-       WHERE accreditation_id = ? AND attended_on = CURDATE()`,
-      [accreditationId],
+       WHERE accreditation_id = ? AND attended_on = ?`,
+      [accreditationId, todayIso],
     );
 
     return rows[0] ? new Date(rows[0].attended_at) : null;

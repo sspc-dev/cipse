@@ -1,6 +1,6 @@
 import type { RowDataPacket } from "mysql2/promise";
 import { withConnection } from "@/lib/db/mysql-client";
-import { isoDayInCongressTime } from "./dates";
+import { congressTodayIso, shiftCongressDay } from "@/lib/congress-dates";
 import type { AdminListQuery } from "./schemas";
 
 export type AccreditationListRow = {
@@ -87,13 +87,14 @@ export function buildAttendanceFilter(kind: AttendanceFilterKind): {
   params: string[];
 } {
   if (kind === "today") {
+    // "Hoy" es el día de negocio de CDMX, no CURDATE() (UTC en la sesión MySQL).
     return {
       condition: `EXISTS (
         SELECT 1 FROM attendance_records t
         WHERE t.accreditation_id = a.id
-          AND t.attended_on = CURDATE()
+          AND t.attended_on = ?
       )`,
-      params: [],
+      params: [congressTodayIso()],
     };
   }
 
@@ -145,7 +146,7 @@ export async function listAccreditations(
               COUNT(r.id) AS attendance_days,
               EXISTS (
                 SELECT 1 FROM attendance_records t
-                WHERE t.accreditation_id = a.id AND t.attended_on = CURDATE()
+                WHERE t.accreditation_id = a.id AND t.attended_on = ?
               ) AS attended_today,
               MAX(r.attended_at) AS last_attendance_at,
               GROUP_CONCAT(DISTINCT DATE_FORMAT(r.attended_on, '%Y-%m-%d')
@@ -157,7 +158,7 @@ export async function listAccreditations(
                 a.access_code, a.created_at
        ORDER BY a.created_at DESC, a.id DESC
        LIMIT ? OFFSET ?`,
-      [...combined.whereParams, query.pageSize, offset],
+      [congressTodayIso(), ...combined.whereParams, query.pageSize, offset],
     );
 
     const [countRows] = await connection.query<RowDataPacket[]>(
@@ -228,6 +229,8 @@ export type AccreditationStats = {
 };
 
 export async function getStats(): Promise<AccreditationStats> {
+  const todayIso = congressTodayIso();
+
   return await withConnection(async (connection) => {
     const [rows] = await connection.query<RowDataPacket[]>(
       `SELECT
@@ -235,7 +238,7 @@ export async function getStats(): Promise<AccreditationStats> {
           FROM accreditations)                         AS total,
          (SELECT COUNT(*)
           FROM attendance_records
-          WHERE attended_on = CURDATE())               AS checkedInToday,
+          WHERE attended_on = ?)                       AS checkedInToday,
          (SELECT COUNT(*)
           FROM accreditations n
           WHERE n.created_at >= CURDATE() - INTERVAL 7 DAY)  AS newLast7Days,
@@ -245,6 +248,7 @@ export async function getStats(): Promise<AccreditationStats> {
             SELECT 1 FROM attendance_records t
             WHERE t.accreditation_id = n.id
           ))                                           AS withoutAttendance`,
+      [todayIso],
     );
 
     const row = rows[0] as Record<string, string | number | null> | undefined;
@@ -346,7 +350,7 @@ export async function getRegistrationsByDay(
 
   /* La ventana se ancla al día del congreso (CDMX), no al huso del servidor:
    * se recorre aritmética sobre mediodías UTC para evitar saltos de fecha. */
-  const todayIso = isoDayInCongressTime(new Date());
+  const todayIso = congressTodayIso();
   const [year, month, day] = todayIso.split("-").map(Number);
   const anchorUtcNoon = Date.UTC(year, month - 1, day, 12);
 
@@ -369,14 +373,18 @@ export async function getRegistrationsByDay(
 export async function getAttendanceByDay(
   windowDays = 7,
 ): Promise<AttendanceByDay[]> {
+  // El umbral de la ventana usa el día de negocio (CDMX), no CURDATE() UTC.
+  const todayIso = congressTodayIso();
+  const fromIso = shiftCongressDay(todayIso, -(windowDays - 1));
+
   const rows = await withConnection(async (connection) => {
     const [result] = await connection.query<RowDataPacket[]>(
       `SELECT DATE_FORMAT(attended_on, '%Y-%m-%d') AS day, COUNT(*) AS registrados
        FROM attendance_records
-       WHERE attended_on >= CURDATE() - INTERVAL ? DAY
+       WHERE attended_on >= ?
        GROUP BY attended_on
        ORDER BY attended_on`,
-      [windowDays - 1],
+      [fromIso],
     );
 
     return result as { day: string; registrados: number }[];
@@ -388,7 +396,6 @@ export async function getAttendanceByDay(
 
   /* La ventana se ancla al día del congreso (CDMX), no al huso del servidor:
    * se recorre aritmética sobre mediodías UTC para evitar saltos de fecha. */
-  const todayIso = isoDayInCongressTime(new Date());
   const [year, month, day] = todayIso.split("-").map(Number);
   const anchorUtcNoon = Date.UTC(year, month - 1, day, 12);
 
