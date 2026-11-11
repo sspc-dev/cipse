@@ -1,12 +1,13 @@
 import ExcelJS from "exceljs";
-import { CONGRESS_TIME_ZONE } from "@/lib/constants";
+import { CONGRESS_TIME_ZONE } from "../../constants.ts";
+import { countryDisplayName } from "../register/data/countries.ts";
 import {
   groupAttendanceByDay,
   reportDayDate,
   reportDayLabel,
   summarizeAttendance,
   type AttendanceReportRow,
-} from "./attendance-report";
+} from "./attendance-report.ts";
 
 const SHEET_NAME = "Asistencia por día";
 const COLUMN_COUNT = 5;
@@ -38,7 +39,8 @@ function fullName(row: AttendanceReportRow): string {
 /**
  * Genera el libro XLSX del reporte: una fila por asistencia agrupada por día,
  * con total por día, total general y desglose de delegados únicos. Con `day`
- * el reporte se limita a ese día calendario (YYYY-MM-DD).
+ * el reporte se limita a ese día calendario (YYYY-MM-DD). El país se imprime
+ * con su nombre completo en español (códigos ISO y valores legacy).
  */
 export async function buildAttendanceReportWorkbook(
   rows: AttendanceReportRow[],
@@ -115,7 +117,7 @@ export async function buildAttendanceReportWorkbook(
     for (const row of day.rows) {
       const dataRow = sheet.getRow(cursor);
       dataRow.getCell(1).value = fullName(row);
-      dataRow.getCell(2).value = row.country;
+      dataRow.getCell(2).value = countryDisplayName(row.country, "es");
       dataRow.getCell(3).value = row.email;
       const phoneCell = dataRow.getCell(4);
       phoneCell.value = row.phone;

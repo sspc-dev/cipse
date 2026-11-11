@@ -7,7 +7,7 @@
  * entorno (Node vs navegador) y causaban mismatch de hidratación.
  */
 
-import { COUNTRY_NAMES } from "./country-names.generated";
+import { COUNTRY_NAMES } from "./country-names.generated.ts";
 
 export type CountryOption = {
   code: string;

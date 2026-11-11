@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --test lib/congress-dates.test.ts tests/attendance-db.test.ts tests/attendance-report.test.ts tests/attendance-report-query.test.ts",
+    "test": "node --test lib/congress-dates.test.ts tests/attendance-db.test.ts tests/attendance-report.test.ts tests/attendance-report-query.test.ts tests/attendance-report-workbook.test.ts",
     "db:up": "docker compose up -d",
     "admin:create": "node --env-file=.env scripts/create-admin.mjs",
     "db:check": "node --env-file=.env scripts/db-check.mjs",
