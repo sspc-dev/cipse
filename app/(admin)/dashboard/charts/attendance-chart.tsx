@@ -46,13 +46,21 @@ export function AttendanceChartPanel({
         />
       )}
 
-      <p className="mt-2.5 border-t border-border/60 pt-2 text-[10px] text-muted/80">
-        Total del periodo:{" "}
-        <span className="font-mono font-semibold tabular-nums text-muted">
-          {numberFormatter.format(total)}
-        </span>{" "}
-        asistencias · barra dorada: hoy
-      </p>
+      <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-border/60 pt-2">
+        <p className="text-[10px] text-muted/80">
+          Total del periodo:{" "}
+          <span className="font-mono font-semibold tabular-nums text-muted">
+            {numberFormatter.format(total)}
+          </span>{" "}
+          asistencias · barra dorada: hoy
+        </p>
+        <a
+          className="text-[10px] font-semibold text-muted transition-colors hover:text-accent-soft-foreground"
+          href="#reportes"
+        >
+          Generar reporte
+        </a>
+      </div>
     </div>
   );
 }

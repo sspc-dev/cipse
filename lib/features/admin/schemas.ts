@@ -40,3 +40,14 @@ export function normalizeChartPeriod(value: number): ChartPeriod {
   if (value > 14) return 30;
   return DEFAULT_CHART_PERIOD;
 }
+
+/**
+ * Parámetro del reporte XLSX de asistencia: `day` es un día calendario
+ * YYYY-MM-DD opcional. Sin día se genera el consolidado de todos los días.
+ */
+export const attendanceReportQuerySchema = z.object({
+  day: z.preprocess(
+    (value) => (value === "" ? undefined : value),
+    z.iso.date().optional(),
+  ),
+});

@@ -22,6 +22,7 @@ import {
 import { congressTodayIso } from "@/lib/congress-dates";
 import {
   CheckIcon,
+  FileSpreadsheetIcon,
   FingerprintIcon,
   GlobeIcon,
   IdCardIcon,
@@ -46,6 +47,7 @@ import { TrendChartPanel } from "./charts/trend-chart";
 import { AttendanceChartPanel } from "./charts/attendance-chart";
 import { CountryChartPanel } from "./charts/country-chart";
 import { AttendanceFilter } from "./charts/attendance-filter";
+import { AttendanceReportPanel } from "./reports/report-panel";
 
 export const metadata: Metadata = {
   title: "Panel de acreditación — CIPSE XV",
@@ -463,6 +465,28 @@ async function AdminContent({
           </Suspense>
         </section>
 
+        {/* Reportes descargables */}
+        <section
+          aria-label="Reportes de asistencia"
+          className="mb-6 flex flex-col gap-3"
+          id="reportes"
+        >
+          <SectionTitle
+            icon={
+              <FileSpreadsheetIcon className="size-3.5" aria-hidden="true" />
+            }
+          >
+            Reportes
+          </SectionTitle>
+          <Suspense
+            fallback={
+              <div className="h-80 animate-pulse rounded-2xl bg-foreground/5" />
+            }
+          >
+            <ReportsPanelSection period={period} />
+          </Suspense>
+        </section>
+
         {/* Listado filtrable */}
         <section
           aria-label="Listado de registros"
@@ -587,6 +611,12 @@ async function AttendancePanelSection({ period }: { period: number }) {
   const todayIso = congressTodayIso();
 
   return <AttendanceChartPanel days={days} todayIso={todayIso} />;
+}
+
+async function ReportsPanelSection({ period }: { period: number }) {
+  const days = await getAttendanceByDay(period);
+
+  return <AttendanceReportPanel days={days} />;
 }
 
 async function CountryPanelSection({
