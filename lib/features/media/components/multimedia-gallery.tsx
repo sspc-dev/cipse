@@ -9,12 +9,11 @@ import {
   FileSpreadsheetIcon,
   FileTextIcon,
   ImageIcon,
-  PlayIcon,
   VideoIcon,
 } from "@/components/icons";
 import { formatMessage, type Dictionary } from "@/lib/i18n";
 import { MULTIMEDIA_DAYS } from "../days";
-import { formatMediaSize, mediaFileUrl } from "../format";
+import { formatMediaSize, mediaThumbUrl } from "../format";
 import {
   countMediaByKind,
   filterMediaItems,
@@ -24,6 +23,8 @@ import {
   type MediaViewItem,
 } from "../taxonomy";
 import { MediaPreviewDialog } from "./media-preview-dialog";
+import { VideoPlaceholder } from "./video-placeholder";
+import { VirtualizedMediaGrid } from "./virtualized-media-grid";
 
 type MultimediaGalleryProps = {
   items: MediaViewItem[];
@@ -201,25 +202,34 @@ export function MultimediaGallery({ items, copy }: MultimediaGalleryProps) {
         </div>
 
         {visibleItems.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {visibleItems.map((item) =>
-              item.kind === "document" ? (
-                <DocumentCard
-                  copy={copy}
-                  item={item}
-                  key={item.id}
-                  onOpen={openPreview}
-                />
-              ) : (
-                <MediaCard
-                  copy={copy}
-                  item={item}
-                  key={item.id}
-                  onOpen={openPreview}
-                />
-              ),
-            )}
-          </div>
+          <VirtualizedMediaGrid
+            ariaLabel={copy.galleryHeading}
+            estimatedCardRowHeight={380}
+            maxHeightClassName="max-h-[min(70vh,760px)]"
+            resetKey={`${day}|${filter}|${query}`}
+            sections={[
+              {
+                key: `day-${day}`,
+                items: visibleItems.map((item) =>
+                  item.kind === "document" ? (
+                    <DocumentCard
+                      copy={copy}
+                      item={item}
+                      key={item.id}
+                      onOpen={openPreview}
+                    />
+                  ) : (
+                    <MediaCard
+                      copy={copy}
+                      item={item}
+                      key={item.id}
+                      onOpen={openPreview}
+                    />
+                  ),
+                ),
+              },
+            ]}
+          />
         ) : (
           <EmptyState
             activeDayLabel={activeDayLabel}
@@ -302,17 +312,7 @@ function MediaCard({
     >
       <span className="relative block aspect-[4/3] w-full overflow-hidden bg-black">
         {isVideo ? (
-          <video
-            className="size-full select-none object-cover brightness-90 transition-transform duration-700 group-hover:scale-105"
-            controlsList="nodownload noplaybackrate"
-            disablePictureInPicture
-            draggable={false}
-            muted
-            onContextMenu={(event) => event.preventDefault()}
-            playsInline
-            preload="metadata"
-            src={mediaFileUrl(item.id)}
-          />
+          <VideoPlaceholder className="select-none transition-transform duration-700 group-hover:scale-105" />
         ) : (
           /* Archivo servido por route handler; no pasa por optimización. */
           /* eslint-disable-next-line @next/next/no-img-element */
@@ -322,7 +322,7 @@ function MediaCard({
             draggable={false}
             loading="lazy"
             onContextMenu={(event) => event.preventDefault()}
-            src={mediaFileUrl(item.id)}
+            src={mediaThumbUrl(item.id)}
           />
         )}
 
@@ -338,15 +338,6 @@ function MediaCard({
           />
           {mediaFormatTag(item)}
         </span>
-
-        {isVideo ? (
-          <span
-            aria-hidden="true"
-            className="absolute top-1/2 left-1/2 flex size-11 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-white/30 bg-black/50 text-white backdrop-blur-md transition-transform duration-300 group-hover:scale-110"
-          >
-            <PlayIcon className="ml-0.5 size-4" />
-          </span>
-        ) : null}
       </span>
 
       <span className="flex flex-1 flex-col gap-1.5 px-3.5 pb-3.5 pt-3">

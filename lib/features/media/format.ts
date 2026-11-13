@@ -16,6 +16,11 @@ export function mediaFileUrl(id: number): string {
   return `/multimedia/file/${id}`;
 }
 
+/** Miniatura reducida (WebP ~640 px) para tarjetas de galería y paneles. */
+export function mediaThumbUrl(id: number): string {
+  return `/multimedia/file/${id}?thumb=1`;
+}
+
 /**
  * URL para el visor embebido (iframe). El parámetro de consulta cambia la
  * clave de caché del navegador: descarta respuestas previas servidas con

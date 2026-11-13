@@ -4,6 +4,7 @@ import {
   formatMediaSize,
   MEDIA_KIND_LABELS,
   mediaFileUrl,
+  mediaThumbUrl,
 } from "@/lib/features/media/format";
 import type {
   MediaInventory,
@@ -11,13 +12,13 @@ import type {
 } from "@/lib/features/media/inventory";
 import type { MediaObjectSummary } from "@/lib/features/media/storage";
 import { mediaKindFromName } from "@/lib/features/media/types";
+import { VideoPlaceholder } from "@/lib/features/media/components/video-placeholder";
 import {
   AlertCircleIcon,
   CalendarIcon,
   CheckIcon,
   EyeIcon,
   FileTextIcon,
-  VideoIcon,
 } from "@/components/icons";
 
 /**
@@ -94,7 +95,7 @@ function Thumbnail({ row }: { row: BucketRow }) {
 
   if (kind === "image" || kind === "video") {
     const src = row.item
-      ? mediaFileUrl(row.item.id)
+      ? mediaThumbUrl(row.item.id)
       : `/api/media/object?name=${encodeURIComponent(row.object.name)}`;
 
     if (kind === "image") {
@@ -112,17 +113,7 @@ function Thumbnail({ row }: { row: BucketRow }) {
 
     return (
       <span className="relative flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border/60 bg-foreground/5">
-        <video
-          aria-hidden="true"
-          className="size-full object-cover"
-          muted
-          playsInline
-          preload="metadata"
-          src={`${src}#t=0.1`}
-        />
-        <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25">
-          <VideoIcon aria-hidden="true" className="size-4 text-white" />
-        </span>
+        <VideoPlaceholder size="sm" />
       </span>
     );
   }

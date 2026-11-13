@@ -13,6 +13,7 @@ import {
   isObjectNotFoundError,
   MediaStorageNotConfiguredError,
 } from "./storage";
+import { mediaThumbKey } from "./thumb-key";
 
 export type MediaActionResult =
   | { ok: true; message: string }
@@ -57,6 +58,19 @@ export async function deleteEventMediaAction(
         message:
           "No fue posible eliminar el archivo del almacenamiento. Intente de nuevo.",
       };
+    }
+  }
+
+  try {
+    // La miniatura es un derivado prescindible: si no existe o falla el
+    // borrado, no se bloquea la eliminación del archivo.
+    await deleteMediaObject(mediaThumbKey(media.id));
+  } catch (error) {
+    if (
+      !isObjectNotFoundError(error) &&
+      !(error instanceof MediaStorageNotConfiguredError)
+    ) {
+      console.error("[deleteEventMediaAction] Error al borrar miniatura:", error);
     }
   }
 

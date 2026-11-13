@@ -6,6 +6,10 @@ import {
   isObjectNotFoundError,
   MediaStorageNotConfiguredError,
 } from "@/lib/features/media/storage";
+import {
+  getOrCreateMediaThumb,
+  MEDIA_THUMB_CONTENT_TYPE,
+} from "@/lib/features/media/thumbs";
 
 function notFound(message: string) {
   return new Response(message, { status: 404 });
@@ -60,6 +64,42 @@ export async function GET(
     );
   }
 
+  const wantsThumb =
+    new URL(request.url).searchParams.get("thumb") === "1";
+
+  if (wantsThumb && media.kind === "image") {
+    try {
+      const thumb = await getOrCreateMediaThumb(media.id, media.objectKey);
+
+      if (thumb) {
+        return new Response(new Uint8Array(thumb), {
+          status: 200,
+          headers: {
+            "Content-Type": MEDIA_THUMB_CONTENT_TYPE,
+            "Content-Length": String(thumb.byteLength),
+            // Contenido determinista por id: se puede cachear de forma segura
+            // en el navegador del usuario autenticado.
+            "Cache-Control": "private, max-age=31536000, immutable",
+            "Content-Disposition": `inline; filename="thumb-${media.id}.webp"`,
+          },
+        });
+      }
+    } catch (error) {
+      if (error instanceof MediaStorageNotConfiguredError) {
+        console.error("[multimedia/file]", error.message);
+        return new Response(
+          "El almacenamiento de multimedia no está configurado.",
+          { status: 503 },
+        );
+      }
+      if (isObjectNotFoundError(error)) {
+        return notFound("El archivo ya no está disponible.");
+      }
+      console.error("[multimedia/file] Error al generar miniatura:", error);
+    }
+    // Sin miniatura disponible: se sirve el original.
+  }
+
   try {
     const object = await getMediaObject({
       key: media.objectKey,
@@ -76,7 +116,7 @@ export async function GET(
         media.mime,
         media.originalName,
       ),
-      "Cache-Control": "private, no-store",
+      "Cache-Control": "private, max-age=3600",
       "Accept-Ranges": "bytes",
     });
 

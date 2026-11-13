@@ -1,16 +1,19 @@
 "use client";
 
 import { Tabs } from "@heroui/react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { MULTIMEDIA_DAYS, type MultimediaDay } from "@/lib/features/media/days";
 import {
   formatMediaSize,
   MEDIA_KIND_LABELS,
   mediaFileUrl,
+  mediaThumbUrl,
 } from "@/lib/features/media/format";
 import { mediaFormatTag } from "@/lib/features/media/taxonomy";
 import type { MediaItem } from "@/lib/features/media/types";
+import { VideoPlaceholder } from "@/lib/features/media/components/video-placeholder";
+import { VirtualizedMediaGrid } from "@/lib/features/media/components/virtualized-media-grid";
 import {
   CalendarIcon,
   ClockIcon,
@@ -38,16 +41,6 @@ function KindIcon({ kind }: { kind: MediaItem["kind"] }) {
   if (kind === "video")
     return <VideoIcon className="size-4" aria-hidden="true" />;
   return <FileTextIcon className="size-4" aria-hidden="true" />;
-}
-
-function VideoPlayBadge() {
-  return (
-    <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/25 transition-colors duration-300 group-hover:bg-black/35">
-      <span className="flex size-8 items-center justify-center rounded-full bg-black/60 text-white transition-transform duration-300 group-hover:scale-110">
-        <VideoIcon aria-hidden="true" className="size-4" />
-      </span>
-    </span>
-  );
 }
 
 /**
@@ -127,20 +120,10 @@ function MediaCard({ item }: { item: MediaItem }) {
             aria-hidden="true"
             className="size-full object-cover transition-transform duration-500 group-hover:scale-105"
             loading="lazy"
-            src={mediaFileUrl(item.id)}
+            src={mediaThumbUrl(item.id)}
           />
         ) : item.kind === "video" ? (
-          <>
-            <video
-              preload="metadata"
-              src={`${mediaFileUrl(item.id)}#t=0.1`}
-              className="size-full object-cover"
-              aria-hidden="true"
-              muted
-              playsInline
-            />
-            <VideoPlayBadge />
-          </>
+          <VideoPlaceholder size="sm" />
         ) : isPdf ? (
           <DocumentThumbnail tag="PDF" tone="guinda" />
         ) : (
@@ -260,68 +243,67 @@ function TabCount({
   );
 }
 
+const MEDIA_CARDS_COLUMNS =
+  "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4";
+const MEDIA_LIST_MAX_HEIGHT = "max-h-[min(78vh,960px)]";
+const MEDIA_CARD_ROW_HEIGHT = 480;
+
 /**
- * Sección de un día: encabezado + grid de tarjetas o estado vacío.
- * Se reutiliza tanto en el panel "Todos" como en el panel de un día.
+ * Encabezado de un día. Se reutiliza tanto en el panel "Todos" como en el
+ * panel de un solo día.
  */
-function DaySection({
+function DayHeader({
   day,
   dayNumber,
-  items,
-  showCount,
+  count,
 }: {
   day: MultimediaDay;
   dayNumber: number;
-  items: MediaItem[];
-  showCount?: boolean;
+  count?: number;
 }) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2.5">
-        <span className="flex size-6 items-center justify-center rounded-md border border-tactical/25 bg-tactical/10 font-mono text-[10px] font-bold text-tactical-bright">
-          {dayNumber}
+    <div className="flex items-center gap-2.5">
+      <span className="flex size-6 items-center justify-center rounded-md border border-tactical/25 bg-tactical/10 font-mono text-[10px] font-bold text-tactical-bright">
+        {dayNumber}
+      </span>
+      <h3 className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
+        {day.label}
+      </h3>
+      {count !== undefined ? (
+        <span className="inline-flex items-center rounded-full border border-border/60 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
+          {count}
         </span>
-        <h3 className="text-[10px] font-semibold uppercase tracking-[0.16em] text-muted">
-          {day.label}
-        </h3>
-        {showCount ? (
-          <span className="inline-flex items-center rounded-full border border-border/60 bg-foreground/5 px-2 py-0.5 text-[10px] font-semibold leading-none tracking-[0.12em] normal-case text-muted">
-            {items.length}
-          </span>
-        ) : null}
-        <span
-          aria-hidden="true"
-          className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent"
-        />
-      </div>
-
-      {items.length === 0 ? (
-        <div className="rounded-md border border-dashed border-border/60 bg-surface/30 px-4 py-10 text-center">
-          <FileTextIcon
-            className="mx-auto mb-2 size-5 text-muted/40"
-            aria-hidden="true"
-          />
-          <p className="text-xs text-muted">
-            Sin material publicado para {day.label.toLowerCase()}.{" "}
-            <Link
-              className="font-semibold text-accent-soft-foreground underline-offset-2 transition-colors hover:text-tactical-bright hover:underline"
-              href="#cargar-material"
-            >
-              Súbelo desde la sección de carga.
-            </Link>
-          </p>
-        </div>
-      ) : (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-          {items.map((item) => (
-            <li key={item.id} className="min-w-0">
-              <MediaCard item={item} />
-            </li>
-          ))}
-        </ul>
-      )}
+      ) : null}
+      <span
+        aria-hidden="true"
+        className="h-px flex-1 bg-gradient-to-r from-border/50 to-transparent"
+      />
     </div>
   );
+}
+
+function DayEmptyState({ day }: { day: MultimediaDay }) {
+  return (
+    <div className="rounded-md border border-dashed border-border/60 bg-surface/30 px-4 py-10 text-center">
+      <FileTextIcon
+        className="mx-auto mb-2 size-5 text-muted/40"
+        aria-hidden="true"
+      />
+      <p className="text-xs text-muted">
+        Sin material publicado para {day.label.toLowerCase()}.{" "}
+        <Link
+          className="font-semibold text-accent-soft-foreground underline-offset-2 transition-colors hover:text-tactical-bright hover:underline"
+          href="#cargar-material"
+        >
+          Súbelo desde la sección de carga.
+        </Link>
+      </p>
+    </div>
+  );
+}
+
+function renderMediaCards(items: MediaItem[]): ReactNode[] {
+  return items.map((item) => <MediaCard item={item} key={item.id} />);
 }
 
 export function MediaDayFilter({ media }: { media: MediaItem[] }) {
@@ -389,19 +371,32 @@ export function MediaDayFilter({ media }: { media: MediaItem[] }) {
       <Tabs.Panel id="all">
         <div
           aria-live="polite"
-          className="flex flex-col gap-8"
+          className="card-enter"
           key={`all-${media.length}`}
         >
-          {MULTIMEDIA_DAYS.map((day, index) => (
-            <div key={day.value} className="card-enter">
-              <DaySection
-                day={day}
-                dayNumber={index + 1}
-                items={media.filter((item) => item.day === day.value)}
-                showCount
-              />
-            </div>
-          ))}
+          <VirtualizedMediaGrid
+            ariaLabel="Material multimedia de todos los días"
+            columnClassName={MEDIA_CARDS_COLUMNS}
+            estimatedCardRowHeight={MEDIA_CARD_ROW_HEIGHT}
+            maxHeightClassName={MEDIA_LIST_MAX_HEIGHT}
+            resetKey={`all-${media.length}`}
+            sections={MULTIMEDIA_DAYS.map((day, index) => {
+              const items = media.filter((item) => item.day === day.value);
+
+              return {
+                key: `day-${day.value}`,
+                header: (
+                  <DayHeader
+                    count={items.length}
+                    day={day}
+                    dayNumber={index + 1}
+                  />
+                ),
+                empty: <DayEmptyState day={day} />,
+                items: renderMediaCards(items),
+              };
+            })}
+          />
         </div>
       </Tabs.Panel>
 
@@ -412,10 +407,20 @@ export function MediaDayFilter({ media }: { media: MediaItem[] }) {
         return (
           <Tabs.Panel id={String(day.value)} key={day.value}>
             <div aria-live="polite" className="card-enter" key={selectedDay}>
-              <DaySection
-                day={day}
-                dayNumber={index + 1}
-                items={items}
+              <VirtualizedMediaGrid
+                ariaLabel={day.label}
+                columnClassName={MEDIA_CARDS_COLUMNS}
+                estimatedCardRowHeight={MEDIA_CARD_ROW_HEIGHT}
+                maxHeightClassName={MEDIA_LIST_MAX_HEIGHT}
+                resetKey={selectedDay}
+                sections={[
+                  {
+                    key: `day-${day.value}`,
+                    header: <DayHeader day={day} dayNumber={index + 1} />,
+                    empty: <DayEmptyState day={day} />,
+                    items: renderMediaCards(items),
+                  },
+                ]}
               />
             </div>
           </Tabs.Panel>
