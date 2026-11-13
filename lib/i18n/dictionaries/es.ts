@@ -162,6 +162,42 @@ export const es = {
       unsupported:
         "Vista previa no disponible para este formato. Consulte el material con el equipo organizador del congreso.",
     },
+    access: {
+      eyebrow: "Acceso restringido",
+      heading: "Multimedia para acreditados",
+      description:
+        "Este material es exclusivo para participantes acreditados y personal del congreso. Ingrese el correo con el que se registró y el código de su credencial QR.",
+      tabsAria: "Tipo de acceso",
+      tabAccredited: "Participantes",
+      tabAdmin: "Personal acreditador",
+      emailLabel: "Correo de registro",
+      emailPlaceholder: "correo@institucion.gob.mx",
+      codeLabel: "Código de la credencial",
+      codePlaceholder: "Código del QR o del correo",
+      submit: "Entrar a multimedia",
+      scanStart: "Escanear QR",
+      scanStop: "Detener cámara",
+      scanHint: "Apunte la cámara al QR de su credencial.",
+      scanDenied:
+        "Permiso de cámara denegado. Habilítelo en el navegador o escriba el código manualmente.",
+      scanFailed: "No fue posible iniciar la cámara en este dispositivo.",
+      scanUnrecognized:
+        "El código detectado no pertenece a las credenciales del CIPSE XV.",
+      scanning: "Buscando el código de la credencial…",
+      emailRequiredHint:
+        "Ingrese primero su correo de registro para continuar con la cámara.",
+      logout: "Cerrar sesión",
+      logoutAria: "Cerrar la sesión de multimedia",
+      welcome: "Sesión de participante acreditado",
+      errors: {
+        validation: "Revise el correo y el código de su credencial.",
+        invalid:
+          "No pudimos validar la credencial. Revise su correo y el código de su QR.",
+        throttled: "Demasiados intentos. Espere un minuto e intente de nuevo.",
+        dbError:
+          "No fue posible iniciar sesión. Intente de nuevo en unos minutos.",
+      },
+    },
     securityNote: "Material exclusivamente para visualización · CIPSE XV",
     footer: "Gobierno de México · SSPC — CIPSE XV · Multimedia",
   },

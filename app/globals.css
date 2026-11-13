@@ -168,18 +168,14 @@ body::before {
   background-size: 480px 480px;
   background-repeat: repeat;
   opacity: var(--texture-opacity);
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    rgba(0, 0, 0, 0.55) 45%,
-    transparent 85%
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    #000 0%,
-    rgba(0, 0, 0, 0.55) 45%,
-    transparent 85%
-  );
+  -webkit-mask-image: linear-gradient(to bottom,
+      #000 0%,
+      rgba(0, 0, 0, 0.55) 45%,
+      transparent 85%);
+  mask-image: linear-gradient(to bottom,
+      #000 0%,
+      rgba(0, 0, 0, 0.55) 45%,
+      transparent 85%);
 }
 
 /*
@@ -208,7 +204,7 @@ body::before {
 }
 
 .label--required::after,
-[data-required="true"] > .label::after {
+[data-required="true"]>.label::after {
   color: var(--gold-ink);
 }
 
@@ -218,6 +214,7 @@ body::before {
     transform: translateY(18px) scale(0.99);
     filter: blur(6px);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -235,6 +232,7 @@ body::before {
     opacity: 0;
     transform: translateY(14px);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -251,6 +249,7 @@ body::before {
     opacity: 0;
     transform: scale(0.92);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -266,10 +265,12 @@ body::before {
     opacity: 0;
     transform: scale(0.5);
   }
+
   60% {
     opacity: 1;
     transform: scale(1.12);
   }
+
   100% {
     opacity: 1;
     transform: none;
@@ -285,6 +286,7 @@ body::before {
   from {
     transform: translateX(-120%);
   }
+
   to {
     transform: translateX(120%);
   }
@@ -294,13 +296,11 @@ body::before {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    100deg,
-    transparent 20%,
-    rgba(255, 255, 255, 0.75) 50%,
-    transparent 80%
-  );
-  animation: strip-shine 2.6s cubic-bezier(0.4, 0, 0.2, 1) 0.35s 2 both;
+  background: linear-gradient(100deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.75) 50%,
+      transparent 80%);
+  animation: strip-shine 2.6s cubic-bezier(0.4, 0, 0.2, 1) 0.35s 1 both;
   pointer-events: none;
 }
 
@@ -309,6 +309,7 @@ body::before {
   from {
     transform: scale(1);
   }
+
   to {
     transform: scale(1.06);
   }
@@ -320,10 +321,12 @@ body::before {
 
 /* Deriva ambiental del panel: torbellinos de color casi imperceptibles */
 @keyframes ambient-drift {
+
   0%,
   100% {
     transform: translate3d(0, 0, 0) scale(1);
   }
+
   50% {
     transform: translate3d(4%, -3%, 0) scale(1.08);
   }
@@ -339,11 +342,13 @@ body::before {
 
 /* Línea de barrido del escáner de credenciales */
 @keyframes scanner-sweep {
+
   0%,
   100% {
     transform: translateY(-46%);
     opacity: 0.9;
   }
+
   50% {
     transform: translateY(46%);
     opacity: 0.55;
@@ -366,6 +371,7 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   .card-enter,
   .reveal,
   .pop-in,

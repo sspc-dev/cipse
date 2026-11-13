@@ -1,3 +1,4 @@
+import { getMediaAccess } from "@/lib/features/auth/media-actions";
 import { findEventMediaById } from "@/lib/features/media/datasource";
 import {
   getMediaObject,
@@ -33,6 +34,12 @@ export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const access = await getMediaAccess();
+
+  if (!access) {
+    return notFound("Archivo no encontrado.");
+  }
+
   const { id } = await context.params;
   const numericId = Number(id);
 
@@ -69,7 +76,7 @@ export async function GET(
         media.mime,
         media.originalName,
       ),
-      "Cache-Control": "public, max-age=31536000, immutable",
+      "Cache-Control": "private, no-store",
       "Accept-Ranges": "bytes",
     });
 

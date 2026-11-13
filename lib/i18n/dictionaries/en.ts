@@ -160,6 +160,41 @@ export const en: Dictionary = {
       unsupported:
         "Preview is not available for this format. Please check the material with the congress organizing team.",
     },
+    access: {
+      eyebrow: "Restricted access",
+      heading: "Multimedia for accredited participants",
+      description:
+        "This material is exclusive to accredited participants and congress staff. Enter the email you registered with and the code from your QR credential.",
+      tabsAria: "Access type",
+      tabAccredited: "Participants",
+      tabAdmin: "Accreditation staff",
+      emailLabel: "Registration email",
+      emailPlaceholder: "email@institution.gob.mx",
+      codeLabel: "Credential code",
+      codePlaceholder: "Code from the QR or email",
+      submit: "Enter multimedia",
+      scanStart: "Scan QR",
+      scanStop: "Stop camera",
+      scanHint: "Point the camera at the QR on your credential.",
+      scanDenied:
+        "Camera permission denied. Enable it in your browser or type the code manually.",
+      scanFailed: "The camera could not be started on this device.",
+      scanUnrecognized:
+        "The detected code does not belong to CIPSE XV credentials.",
+      scanning: "Looking for the credential code…",
+      emailRequiredHint:
+        "Enter your registration email first to continue with the camera.",
+      logout: "Sign out",
+      logoutAria: "Sign out of multimedia",
+      welcome: "Accredited participant session",
+      errors: {
+        validation: "Check your email and credential code.",
+        invalid:
+          "We could not validate the credential. Check your email and the code from your QR.",
+        throttled: "Too many attempts. Wait a minute and try again.",
+        dbError: "Sign-in failed. Please try again in a few minutes.",
+      },
+    },
     securityNote: "View-only material · CIPSE XV",
     footer: "Government of Mexico · SSPC — CIPSE XV · Multimedia",
   },

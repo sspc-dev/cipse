@@ -4,6 +4,9 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
 import { Skeleton } from "@heroui/react";
+import { getMediaAccess } from "@/lib/features/auth/media-actions";
+import { MediaAccessGate } from "@/lib/features/auth/components/media-access-gate";
+import { MediaLogoutButton } from "@/lib/features/auth/components/media-logout-button";
 import { listEventMediaWithKeys } from "@/lib/features/media/datasource";
 import {
   isMediaStorageConfigured,
@@ -25,6 +28,7 @@ export async function generateMetadata(
   return {
     title: dictionary.metadata.mediaTitle,
     description: dictionary.metadata.mediaDescription,
+    robots: { index: false, follow: false },
   };
 }
 
@@ -39,6 +43,7 @@ export default async function MultimediaPage(
 
   const dictionary = getDictionary(lang);
   const copy = dictionary.media;
+  const access = await getMediaAccess();
 
   return (
     <main className="min-h-screen overflow-x-hidden bg-background text-foreground">
@@ -81,6 +86,12 @@ export default async function MultimediaPage(
                 </div>
               </div>
               <div className="reveal flex items-center gap-2 [animation-delay:150ms]">
+                {access?.kind === "accredited" ? (
+                  <MediaLogoutButton
+                    ariaLabel={copy.access.logoutAria}
+                    label={copy.access.logout}
+                  />
+                ) : null}
                 <LanguageSwitcher
                   className="h-8 rounded-full px-3 text-[11px] font-semibold"
                   label={dictionary.common.languageSwitcherLabel}
@@ -101,13 +112,19 @@ export default async function MultimediaPage(
           </header>
 
           <div className="relative z-10 flex w-full flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
-            <Suspense fallback={<GallerySkeleton />}>
-              <MultimediaContent dictionary={dictionary} />
-            </Suspense>
+            {access ? (
+              <>
+                <Suspense fallback={<GallerySkeleton />}>
+                  <MultimediaContent dictionary={dictionary} />
+                </Suspense>
 
-            <footer className="reveal mt-4 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60 [animation-delay:200ms]">
-              {copy.footer}
-            </footer>
+                <footer className="reveal mt-4 border-t border-border/60 pt-5 text-center text-[11px] text-muted/60 [animation-delay:200ms]">
+                  {copy.footer}
+                </footer>
+              </>
+            ) : (
+              <MultimediaGate dictionary={dictionary} />
+            )}
           </div>
           <div
             aria-hidden="true"
@@ -116,6 +133,38 @@ export default async function MultimediaPage(
         </div>
       </div>
     </main>
+  );
+}
+
+function MultimediaGate({
+  dictionary,
+}: {
+  dictionary: ReturnType<typeof getDictionary>;
+}) {
+  const copy = dictionary.media.access;
+
+  return (
+    <section className="flex min-h-[60vh] items-center justify-center py-4">
+      <div className="card-enter w-full max-w-md overflow-hidden rounded-[22px] border border-border bg-surface/85 shadow-[0_30px_80px_-30px_rgba(16,24,29,0.4)] backdrop-blur-xl dark:border-white/10 dark:shadow-[0_30px_90px_-30px_rgba(0,0,0,0.95)]">
+        <div className="strip-shine h-1 w-full bg-linear-to-r from-tactical via-white to-guinda" />
+
+        <div className="p-6 sm:p-8">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gold-ink/90">
+            {copy.eyebrow}
+          </p>
+          <h1 className="mt-2 font-display text-2xl font-bold tracking-tight text-foreground">
+            {copy.heading}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-muted">
+            {copy.description}
+          </p>
+
+          <div className="my-6 h-px bg-border" />
+
+          <MediaAccessGate dictionary={dictionary} />
+        </div>
+      </div>
+    </section>
   );
 }
 
