@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
 
-/** Respaldo: el proxy redirige /es y /en directamente al registro. */
+/** Respaldo: el proxy redirige /es y /en directamente a multimedia. */
 export default async function LanguageIndexPage(
   props: PageProps<"/[lang]">,
 ) {
   const { lang } = await props.params;
 
-  redirect(`/${lang}/register`);
+  redirect(`/${lang}/multimedia`);
 }

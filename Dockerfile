@@ -75,6 +75,6 @@ USER node
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \
-  CMD wget --spider -q "http://127.0.0.1:${PORT}/es/register" || exit 1
+  CMD wget --spider -q "http://127.0.0.1:${PORT}/es/multimedia" || exit 1
 
 CMD ["node", "node_modules/next/dist/bin/next", "start"]

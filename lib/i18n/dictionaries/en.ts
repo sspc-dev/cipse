@@ -4,7 +4,6 @@ export const en: Dictionary = {
   common: {
     event: "CIPSE XV · Mexico 2026",
     org: "Government of Mexico · SSPC",
-    registerLink: "Registration",
     languageSwitcherLabel: "Change language",
     languageName: "English",
     themeLabel: "Theme selection",
@@ -165,9 +164,6 @@ export const en: Dictionary = {
       heading: "Multimedia for accredited participants",
       description:
         "This material is exclusive to accredited participants and congress staff. Enter the email you registered with and the code from your QR credential.",
-      tabsAria: "Access type",
-      tabAccredited: "Participants",
-      tabAdmin: "Accreditation staff",
       emailLabel: "Registration email",
       emailPlaceholder: "email@institution.gob.mx",
       codeLabel: "Credential code",

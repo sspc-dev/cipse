@@ -21,7 +21,6 @@ Documentación orientada a **auditoría de seguridad y análisis de IDOR** de la
   - [`GET /multimedia/file/[id]`](#get-multimediafileid)
 - [Server Actions](#server-actions)
   - [Autenticación](#autenticación)
-  - [Registro / acreditación](#registro--acreditación)
   - [Check-in](#check-in)
   - [Multimedia](#multimedia)
   - [Usuarios administradores](#usuarios-administradores)
@@ -42,7 +41,6 @@ Documentación orientada a **auditoría de seguridad y análisis de IDOR** de la
 | Action | `loginAdmin` | POST (acción) | Público | `email`, `password` | 200, 400, 401, 429, 503 (equiv.) | N/A |
 | Action | `getAdminSession` | POST (acción) | — | cookie de sesión | 200 / sin sesión (equiv.) | N/A |
 | Action | `logoutAdmin` | POST (acción) | Admin | cookie de sesión | 200 / sin sesión (equiv.) | N/A |
-| Action | `registerAccreditation` | POST (acción) | **Público** | datos del formulario, `email` | 200, 400, 409, 500 (equiv.) | N/A (creación) |
 | Action | `registerAttendance` | POST (acción) | Admin | `accessCode` | 200, 400, 401, 500 (equiv.) | Bajo (código 16–64 alnum) |
 | Action | `lookupAccreditation` | POST (acción) | Admin | `accessCode` | 200, 400, 401, 500 (equiv.) | Bajo (código 16–64 alnum) |
 | Action | `deleteEventMediaAction` | POST (acción) | Admin | `id` | 200, 400, 401, 404, 500, 503 (equiv.) | Bajo (sin ownership) |
@@ -263,38 +261,7 @@ Cierra la sesión activa.
 
 ### Registro / acreditación
 
-**Archivo:** `lib/features/register/actions.ts`
-
-#### `registerAccreditation` · POST (acción)
-
-Registra una acreditación de delegado y envía la credencial por correo.
-
-- **Autenticación:** **pública** (formulario de registro).
-- **Firma:** `registerAccreditation(input: unknown, locale?: string): Promise<RegisterActionResponse>`.
-- **Entrada** (`createRegisterSchema`, mensajes según idioma):
-
-| Campo | Tipo | Obligatorio | Validación |
-| --- | --- | --- | --- |
-| `name` | string | Sí | `trim`, mín. 2. |
-| `lastname` | string | Sí | `trim`, mín. 2. |
-| `country` | string | Sí | `trim`, mín. 2. |
-| `institution` | string | Sí | `trim`, mín. 2. |
-| `position` | string | Sí | `trim`, mín. 2. |
-| `phone` | string | No | Vacío o `/^[+()\-\s\d]{7,20}$/`. |
-| `email` | string | Sí | Email válido; se normaliza a minúsculas. |
-
-- **Autorización / IDOR:** creación; no manipula identificadores de otros recursos.
-- **Efectos secundarios:** inserta en `accreditations`, genera folio `CIPSE-<id 4 dígitos>` y `accessCode`, envía correo con QR; si el envío fue `sent`, actualiza `access_email_sent_at`.
-- **Observación:** endpoint público de creación sin rate limiting propio.
-
-| Código equiv. | Cuerpo | Cuándo |
-| --- | --- | --- |
-| `200` | `{ "ok": true, "id", "accessCode", "email", "emailDelivery" }` | Acreditación creada. |
-| `400` | `{ "ok": false, "code": "VALIDATION", "message" }` | Entrada inválida. |
-| `409` | `{ "ok": false, "code": "DUPLICATE_EMAIL", "message" }` | El email ya está registrado. |
-| `500` | `{ "ok": false, "code": "DB_ERROR", "message" }` | Error de base de datos. |
-
-`emailDelivery` ∈ `{ state: "sent" } | { state: "failed"; reason } | { state: "skipped"; reason }`.
+El registro público de acreditaciones está deshabilitado: se eliminaron la ruta `/[lang]/register` y el Server Action `registerAccreditation`. Los únicos endpoints de acreditación vigentes son los de check-in y multimedia (acceso con credencial existente).
 
 ---
 

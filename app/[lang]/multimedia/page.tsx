@@ -16,7 +16,7 @@ import type { MediaItem } from "@/lib/features/media/types";
 import { toMediaViewItem } from "@/lib/features/media/taxonomy";
 import { MultimediaGallery } from "@/lib/features/media/components/multimedia-gallery";
 import { MultimediaHero } from "@/lib/features/media/components/multimedia-hero";
-import { getDictionary, hasLocale, localizedPath } from "@/lib/i18n";
+import { getDictionary, hasLocale } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/language-switcher";
 
 export async function generateMetadata(
@@ -101,12 +101,6 @@ export default async function MultimediaPage(
                       .languageName
                   }
                 />
-                <a
-                  className="rounded-full border border-border px-3.5 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground"
-                  href={localizedPath(lang, "/register")}
-                >
-                  {dictionary.common.registerLink}
-                </a>
               </div>
             </div>
           </header>

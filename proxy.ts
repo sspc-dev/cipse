@@ -44,7 +44,7 @@ function preferredLocale(request: NextRequest): Locale {
 
 /**
  * Respuesta de redirección con cabeceras de seguridad y tipo explícito.
- * Antes la redirección al registro la hacía `app/[lang]/page.tsx` con
+ * Antes la redirección a multimedia la hacía `app/[lang]/page.tsx` con
  * `redirect()`, que devolvía un HTML completo (alerta ZAP "Big Redirect").
  */
 function redirectResponse(url: URL, locale: Locale, nonce: string): NextResponse {
@@ -69,9 +69,9 @@ export function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
 
     if (hasLocale(firstSegment)) {
-      // La redirección al registro se emite aquí, con cuerpo mínimo.
+      // La redirección a multimedia se emite aquí, con cuerpo mínimo.
       if (pathname === `/${firstSegment}`) {
-        url.pathname = `/${firstSegment}/register`;
+        url.pathname = `/${firstSegment}/multimedia`;
         return redirectResponse(url, firstSegment, nonce);
       }
 
@@ -80,7 +80,7 @@ export function proxy(request: NextRequest) {
 
     const locale = preferredLocale(request);
     url.pathname =
-      pathname === "/" ? `/${locale}/register` : `/${locale}${pathname}`;
+      pathname === "/" ? `/${locale}/multimedia` : `/${locale}${pathname}`;
 
     return redirectResponse(url, locale, nonce);
   }

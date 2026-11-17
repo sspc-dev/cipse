@@ -1,12 +1,11 @@
 "use client";
 
 import { AlertCircleIcon, CameraIcon, QrCodeIcon } from "@/components/icons";
-import { AdminLoginForm } from "@/lib/features/auth/components/admin-login-form";
 import {
   loginMediaAccreditation,
   type MediaLoginErrorCode,
 } from "@/lib/features/auth/media-actions";
-import { Button, Input, Label, Tabs, TextField } from "@heroui/react";
+import { Button, Input, Label, TextField } from "@heroui/react";
 import jsQR from "jsqr";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -33,31 +32,9 @@ export function MediaAccessGate({ dictionary }: { dictionary: Dictionary }) {
   const router = useRouter();
 
   return (
-    <Tabs className="w-full" defaultSelectedKey="accredited">
-      <Tabs.ListContainer>
-        <Tabs.List aria-label={copy.tabsAria}>
-          <Tabs.Tab id="accredited">
-            {copy.tabAccredited}
-            <Tabs.Indicator />
-          </Tabs.Tab>
-          <Tabs.Tab id="admin">
-            {copy.tabAdmin}
-            <Tabs.Indicator />
-          </Tabs.Tab>
-        </Tabs.List>
-      </Tabs.ListContainer>
-
-      <Tabs.Panel className="pt-5" id="accredited">
-        <AccreditedAccessForm
-          copy={copy}
-          onSuccess={() => router.refresh()}
-        />
-      </Tabs.Panel>
-
-      <Tabs.Panel className="pt-5" id="admin">
-        <AdminLoginForm onSuccess={() => router.refresh()} />
-      </Tabs.Panel>
-    </Tabs>
+    <div className="w-full">
+      <AccreditedAccessForm copy={copy} onSuccess={() => router.refresh()} />
+    </div>
   );
 }
 

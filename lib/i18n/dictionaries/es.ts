@@ -3,7 +3,6 @@ export const es = {
   common: {
     event: "CIPSE XV · México 2026",
     org: "Gobierno de México · SSPC",
-    registerLink: "Registro",
     languageSwitcherLabel: "Cambiar idioma",
     languageName: "Español",
     themeLabel: "Selección de tema",
@@ -167,9 +166,6 @@ export const es = {
       heading: "Multimedia para acreditados",
       description:
         "Este material es exclusivo para participantes acreditados y personal del congreso. Ingrese el correo con el que se registró y el código de su credencial QR.",
-      tabsAria: "Tipo de acceso",
-      tabAccredited: "Participantes",
-      tabAdmin: "Personal acreditador",
       emailLabel: "Correo de registro",
       emailPlaceholder: "correo@institucion.gob.mx",
       codeLabel: "Código de la credencial",

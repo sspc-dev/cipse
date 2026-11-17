@@ -5,7 +5,6 @@ import { AdminLogoutButton } from "./admin-logout-button";
 import {
   IdCardIcon,
   ImageIcon,
-  QrCodeIcon,
   ShieldIcon,
   UsersIcon,
   type IconProps,
@@ -69,14 +68,6 @@ export function AdminHeader({
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Link
-              aria-label="Abrir el QR imprimible para el autorregistro"
-              className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"
-              href="/dashboard/register-qr"
-            >
-              <QrCodeIcon aria-hidden="true" className="size-3.5" />
-              QR de registro
-            </Link>
             <Link
               aria-label="Ir a la galería pública del congreso"
               className="hidden rounded-full border border-border px-3 py-1.5 text-[11px] font-semibold text-muted transition-colors hover:border-accent hover:text-accent-soft-foreground sm:inline-flex"

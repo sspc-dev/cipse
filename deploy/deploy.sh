@@ -26,14 +26,14 @@
 #   1/6: APP_IMAGE=<nuevo> pull del color INACTIVO (a/b) y recreate de ese
 #        contenedor; el activo no se toca en todo el release.
 #   2/6: esperar el healthcheck del contenedor nuevo (Dockerfile:
-#        wget /es/register).
+#        wget /es/multimedia).
 #   3/6: migraciones idempotentes (deploy/db-migrate.sh): el esquema se
 #        sincroniza mientras la versión anterior sigue en servicio.
 #   4/6: conmutación: reescribir deploy/dynamic/app-routing.yml hacia el
 #        color nuevo — Traefik (provider file) recarga en caliente y el
 #        tráfico cambia sin downtime.
 #   5/6: verificación visible: HTTPS (o HTTP con redirect) local del host,
-#        a través de Traefik, contra /es/register.
+#        a través de Traefik, contra /es/multimedia.
 #   6/6: parar el color anterior (el contenedor se CONSERVA parado para el
 #        rollback) y registrar el estado (deploy/state.env).
 #
@@ -58,7 +58,7 @@ ENV_FILE="${CIPSE_ENV_FILE:-$ROOT_DIR/.env}"
 DEFAULT_IMAGE="${CIPSE_IMAGE:-ghcr.io/duartedc/cipse:latest}"
 STATE_FILE="$ROOT_DIR/deploy/state.env"
 ROUTING_FILE="$ROOT_DIR/deploy/dynamic/app-routing.yml"
-HEALTH_PATH="/es/register"
+HEALTH_PATH="/es/multimedia"
 HEALTH_TIMEOUT_S=180
 
 COMPOSE=(docker compose --env-file "$ENV_FILE" -f deploy/docker-compose.yml -f deploy/docker-compose.tls.yml)
