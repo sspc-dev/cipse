@@ -15,7 +15,15 @@
 
 const isProduction = process.env.NODE_ENV === "production";
 
-export function buildSecurityHeaders({ nonce }: { nonce: string }) {
+type FramePolicy = "none" | "self";
+
+export function buildSecurityHeaders({
+  nonce,
+  framePolicy = "none",
+}: {
+  nonce: string;
+  framePolicy?: FramePolicy;
+}) {
   const cspDirectives = [
     "default-src 'self'",
     // En desarrollo React usa eval() para depuración (callstacks, HMR); la
@@ -31,7 +39,7 @@ export function buildSecurityHeaders({ nonce }: { nonce: string }) {
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
-    "frame-ancestors 'none'",
+    `frame-ancestors '${framePolicy}'`,
     // En desarrollo el sitio se sirve por HTTP y forzar HTTPS rompería los
     // recursos del propio localhost; solo se envía en producción.
     ...(isProduction ? ["upgrade-insecure-requests"] : []),
@@ -39,7 +47,10 @@ export function buildSecurityHeaders({ nonce }: { nonce: string }) {
 
   return [
     { key: "Content-Security-Policy", value: cspDirectives.join("; ") },
-    { key: "X-Frame-Options", value: "DENY" },
+    {
+      key: "X-Frame-Options",
+      value: framePolicy === "self" ? "SAMEORIGIN" : "DENY",
+    },
     {
       key: "Strict-Transport-Security",
       value: "max-age=63072000; includeSubDomains",
@@ -54,8 +65,12 @@ export function buildSecurityHeaders({ nonce }: { nonce: string }) {
 }
 
 /** Aplica las cabeceras a una respuesta del middleware o a un `Headers`. */
-export function applySecurityHeaders(headers: Headers, nonce: string): void {
-  for (const { key, value } of buildSecurityHeaders({ nonce })) {
+export function applySecurityHeaders(
+  headers: Headers,
+  nonce: string,
+  framePolicy: FramePolicy = "none",
+): void {
+  for (const { key, value } of buildSecurityHeaders({ nonce, framePolicy })) {
     headers.set(key, value);
   }
 }

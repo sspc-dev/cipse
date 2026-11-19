@@ -94,15 +94,24 @@ export function proxy(request: NextRequest) {
  * seguridad en la respuesta.
  */
 function nextWithSecurity(request: NextRequest, nonce: string): NextResponse {
+  const { pathname, searchParams } = request.nextUrl;
+  // El visor de PDF incrusta esta ruta en un iframe del propio sitio; el resto
+  // de las respuestas conserva la política estricta contra clickjacking.
+  const framePolicy =
+    pathname.startsWith("/multimedia/file") &&
+    searchParams.get("view") === "inline"
+      ? "self"
+      : "none";
+
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
   requestHeaders.set(
     "Content-Security-Policy",
-    buildSecurityHeaders({ nonce })[0].value,
+    buildSecurityHeaders({ nonce, framePolicy })[0].value,
   );
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
-  applySecurityHeaders(response.headers, nonce);
+  applySecurityHeaders(response.headers, nonce, framePolicy);
   return response;
 }
 
